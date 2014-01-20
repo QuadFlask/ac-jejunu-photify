@@ -1,0 +1,79 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+              android:layout_width="match_parent"
+              android:layout_height="match_parent"
+              android:orientation="vertical">
+
+	<ScrollView
+		android:layout_width="match_parent"
+		android:layout_height="match_parent"
+		android:id="@+id/scrollView">
+
+		<LinearLayout
+			android:layout_width="fill_parent"
+			android:layout_height="wrap_content"
+			android:orientation="vertical">
+
+			<!--fragment_facebook_login image-->
+			<ac.jejunu.photify.view.UrlImageView
+				android:layout_width="fill_parent"
+				android:layout_height="fill_parent"
+				android:layout_gravity="center_vertical"
+				android:scaleType="fitXY"
+				android:id="@+id/iv_mainphoto"/>
+
+			<!--info-->
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:layout_marginBottom="25dp">
+				<include layout="@layout/profile_and_text"/>
+			</LinearLayout>
+
+			<!--google map-->
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:layout_marginBottom="25dp">
+				<fragment
+					android:id="@+id/map"
+					android:layout_width="match_parent"
+					android:layout_height="250dp"
+					class="com.google.android.gms.maps.MapFragment"/>
+				<TextView
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="TEST ADDRESS"
+					android:id="@+id/tv_address"/>
+			</LinearLayout>
+
+			<!--comments-->
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="vertical"
+				android:layout_marginBottom="25dp"
+				android:id="@+id/ll_comments">
+			</LinearLayout>
+
+			<LinearLayout
+				android:layout_width="fill_parent"
+				android:layout_height="wrap_content"
+				android:orientation="horizontal"
+				android:layout_marginBottom="25dp">
+				<EditText
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:layout_weight="1"
+					android:id="@+id/et_comment"/>
+				<Button
+					android:layout_width="wrap_content"
+					android:layout_height="wrap_content"
+					android:text="write"
+					android:id="@+id/btn_write"/>
+			</LinearLayout>
+		</LinearLayout>
+	</ScrollView>
+</LinearLayout>
