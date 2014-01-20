@@ -1,5 +1,6 @@
 package ac.jejunu.photify;
 
+import ac.jejunu.photify.fragment.FacebookLoginFragment_;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
 import ac.jejunu.photify.fragment.TestFragment;
 import android.app.ActionBar;
@@ -120,6 +121,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		private Fragment[] fragments = new Fragment[]{
 //				new PostFragment(),
 				new MasonryGridFragment_(),
+				new FacebookLoginFragment_(),
 				new TestFragment(),
 				new TestFragment(),
 //				new TestFragment(),
