@@ -7,6 +7,7 @@ import android.content.Context;
 import android.graphics.Rect;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
@@ -25,14 +26,11 @@ public class MasonryGridView extends ScrollView {
 		super.addView(columnContainer);
 
 		columnContainer.setOrientation(LinearLayout.HORIZONTAL);
-		columnContainer.setLayoutParams(new LinearLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
+		columnContainer.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
 
-		int[] backgroundColor = new int[]{0xffff0000, 0xffff8800, 0xffff00ff, 0xff00ff00, 0xff00ffff, 0xff0000ff};
+		int[] backgroundColor = new int[] { 0xffff0000, 0xffff8800, 0xffff00ff, 0xff00ff00, 0xff00ffff, 0xff0000ff };
 		for (int i = 0; i < Math.max(1, column); i++) {
-			StackLinearLayout stackLinearLayout = new StackLinearLayout(
-					context,
-					new LinearLayout.LayoutParams(240, LayoutParams.WRAP_CONTENT, 1f),
-					LinearLayout.VERTICAL);
+			StackLinearLayout stackLinearLayout = new StackLinearLayout(context, new LinearLayout.LayoutParams(240, LinearLayout.LayoutParams.WRAP_CONTENT, 1f), LinearLayout.VERTICAL);
 			stackLinearLayout.setBackgroundColor(backgroundColor[i]);
 			columns.add(stackLinearLayout);
 		}
@@ -64,8 +62,7 @@ public class MasonryGridView extends ScrollView {
 		super.onScrollChanged(l, t, oldl, oldt);
 		Rect scrollBounds = new Rect();
 		for (View view : children) {
-			if (!view.getLocalVisibleRect(scrollBounds))
-				view.setVisibility(View.INVISIBLE);
+			if (!view.getLocalVisibleRect(scrollBounds)) view.setVisibility(View.INVISIBLE);
 			else view.setVisibility(View.VISIBLE);
 		}
 		fireOnScrollBottom();
@@ -103,7 +100,7 @@ class StackLinearLayout {
 	public void addView(View view) {
 		layout.addView(view);
 
-		view.measure(View.MeasureSpec.UNSPECIFIED, View.MeasureSpec.UNSPECIFIED);
+		view.measure(ViewGroup.MeasureSpec.UNSPECIFIED, ViewGroup.MeasureSpec.UNSPECIFIED);
 		height += view.getMeasuredHeight();
 	}
 
