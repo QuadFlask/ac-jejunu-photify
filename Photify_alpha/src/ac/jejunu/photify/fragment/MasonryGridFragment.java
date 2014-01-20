@@ -1,12 +1,5 @@
 package ac.jejunu.photify.fragment;
 
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import ac.jejunu.photify.R;
-import ac.jejunu.photify.view.MasonryGridView;
-import ac.jejunu.photify.view.OnScrollBottomListener;
-import ac.jejunu.photify.view.UrlImageView;
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -18,6 +11,14 @@ import android.widget.TextView;
 import com.googlecode.androidannotations.annotations.AfterViews;
 import com.googlecode.androidannotations.annotations.EFragment;
 import com.googlecode.androidannotations.annotations.ViewById;
+
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import ac.jejunu.photify.R;
+import ac.jejunu.photify.view.MasonryGridView;
+import ac.jejunu.photify.view.OnScrollBottomListener;
+import ac.jejunu.photify.view.UrlImageView;
 
 @EFragment(R.layout.fragment_masonry)
 public class MasonryGridFragment extends Fragment implements OnScrollBottomListener {
@@ -93,7 +94,7 @@ class GridItem extends LinearLayout {
 		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
 		ivItemImage.setImageURL(new URL(photoUrl));
 		ivItemImage.setMaxWidth(220);
-//		ivItemImage.setLayoutParams(new ViewGroup.LayoutParams(ViewGroup.LayoutParams.FILL_PARENT, height));
+		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
 		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
 
 		ivProfilepic = (UrlImageView) view.findViewById(R.id.iv_profilepic);
