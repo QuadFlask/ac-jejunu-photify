@@ -10,10 +10,13 @@ import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
 
+import org.apache.http.client.ClientProtocolException;
 import org.json.JSONException;
 import org.json.JSONObject;
 
 import ac.jejunu.photify.R;
+import ac.jejunu.photify.rest.DefaultRestController;
+import ac.jejunu.photify.rest.LoginRestClient;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
@@ -45,13 +48,14 @@ import com.facebook.android.Util;
 import com.facebook.widget.LoginButton;
 import com.facebook.widget.WebDialog;
 import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.Background;
 import com.googlecode.androidannotations.annotations.EFragment;
 import com.googlecode.androidannotations.annotations.ViewById;
+import com.googlecode.androidannotations.annotations.rest.RestService;
 
 @EFragment(R.layout.fragment_facebook_login)
 public class FacebookLoginFragment extends Fragment {
-
-	private static final String TAG = "MainFragment";
+	private static final String TAG = "FacebookLoginFragment";
 
 	@ViewById(R.id.shareButton)
 	Button shareButton;
@@ -61,6 +65,9 @@ public class FacebookLoginFragment extends Fragment {
 
 	@ViewById(R.id.authButton)
 	LoginButton authButton;
+
+	@RestService
+	LoginRestClient loginResclient;
 
 	private static final List<String> PERMISSIONS = Arrays.asList("publish_actions", "publish_stream", "read_stream");
 
@@ -95,6 +102,31 @@ public class FacebookLoginFragment extends Fragment {
 		});
 
 		printHashKey();
+
+		login();
+		checkLogin();
+	}
+
+	@Background
+	void login() {
+		DefaultRestController rc = new DefaultRestController();
+		try {
+			String result = rc.post("http://113.198.164.111:8080/login.photo", "fbid", "123123");
+			Log.e(TAG, "login result : "+ result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
+	@Background
+	void checkLogin() {
+		DefaultRestController rc = new DefaultRestController();
+		try {
+			String result = rc.get("http://113.198.164.111:8080/checkreg.photo?fbid=123123");
+			Log.e(TAG, "checkLogin result : "+ result);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
 	}
 
 	@Override
@@ -111,12 +143,12 @@ public class FacebookLoginFragment extends Fragment {
 	public void onResume() {
 		super.onResume();
 
-		// For scenarios where the fragment_facebook_login activity is launched and user
+		// For scenarios where the fragment_facebook_login activity is launched
+		// and user
 		// session is not null, the session state change notification
 		// may not be triggered. Trigger it if it's open/closed.
 		Session session = Session.getActiveSession();
-		if (session != null &&
-				(session.isOpened() || session.isClosed())) {
+		if (session != null && (session.isOpened() || session.isClosed())) {
 			onSessionStateChange(session, session.getState(), null);
 		}
 
@@ -152,8 +184,7 @@ public class FacebookLoginFragment extends Fragment {
 		Log.e("onSessionStateChange", "state : isOpen?:" + state.isOpened());
 		if (state.isOpened()) {
 			shareButton.setVisibility(View.VISIBLE);
-			if (pendingPublishReauthorization &&
-					state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
+			if (pendingPublishReauthorization && state.equals(SessionState.OPENED_TOKEN_UPDATED)) {
 				pendingPublishReauthorization = false;
 				publishStory();
 			}
@@ -172,8 +203,7 @@ public class FacebookLoginFragment extends Fragment {
 			List<String> permissions = session.getPermissions();
 			if (!isSubsetOf(PERMISSIONS, permissions)) {
 				pendingPublishReauthorization = true;
-				Session.NewPermissionsRequest newPermissionsRequest = new Session
-						.NewPermissionsRequest(this, PERMISSIONS);
+				Session.NewPermissionsRequest newPermissionsRequest = new Session.NewPermissionsRequest(this, PERMISSIONS);
 				session.requestNewPublishPermissions(newPermissionsRequest);
 				return;
 			}
@@ -186,21 +216,20 @@ public class FacebookLoginFragment extends Fragment {
 
 			String appStorage = Environment.getExternalStorageDirectory().getPath();
 			String path = appStorage + "/PolarClock_background/background.png";
-//			addImage(postParams, path);
+			// addImage(postParams, path);
 
 			postParams.putString("picture", "https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-prn1/t1/995001_553244524762418_873787853_n.jpg");
 
 			Request.Callback callback = new Request.Callback() {
 				public void onCompleted(Response response) {
-					if (response == null) return;
+					if (response == null)
+						return;
 					Log.e("Request.Callback", "Request.Callback response received!");
 					FacebookRequestError error = response.getError();
 					if (error != null)
 						Log.e("Request.Callback", error.getErrorType() + " : " + error.getErrorMessage());
 
-					JSONObject graphResponse = response
-							.getGraphObject()
-							.getInnerJSONObject();
+					JSONObject graphResponse = response.getGraphObject().getInnerJSONObject();
 					String postId = null;
 					try {
 						postId = graphResponse.getString("id");
@@ -208,15 +237,9 @@ public class FacebookLoginFragment extends Fragment {
 						Log.i(TAG, "JSON error " + e.getMessage());
 					}
 					if (error != null) {
-						Toast.makeText(getActivity()
-								.getApplicationContext(),
-								error.getErrorMessage(),
-								Toast.LENGTH_SHORT).show();
+						Toast.makeText(getActivity().getApplicationContext(), error.getErrorMessage(), Toast.LENGTH_SHORT).show();
 					} else {
-						Toast.makeText(getActivity()
-								.getApplicationContext(),
-								postId,
-								Toast.LENGTH_LONG).show();
+						Toast.makeText(getActivity().getApplicationContext(), postId, Toast.LENGTH_LONG).show();
 					}
 				}
 			};
@@ -241,41 +264,28 @@ public class FacebookLoginFragment extends Fragment {
 		Bundle params = new Bundle();
 		params.putString("message", "Learn how to make your Android apps social");
 
-		WebDialog requestsDialog = (
-				new WebDialog.RequestsDialogBuilder(getActivity(),
-						Session.getActiveSession(),
-						params))
-				.setOnCompleteListener(new WebDialog.OnCompleteListener() {
+		WebDialog requestsDialog = (new WebDialog.RequestsDialogBuilder(getActivity(), Session.getActiveSession(), params)).setOnCompleteListener(
+				new WebDialog.OnCompleteListener() {
 
 					@Override
-					public void onComplete(Bundle values,
-					                       FacebookException error) {
+					public void onComplete(Bundle values, FacebookException error) {
 						if (error != null) {
 							if (error instanceof FacebookOperationCanceledException) {
-								Toast.makeText(getActivity().getApplicationContext(),
-										"Request cancelled",
-										Toast.LENGTH_SHORT).show();
+								Toast.makeText(getActivity().getApplicationContext(), "Request cancelled", Toast.LENGTH_SHORT).show();
 							} else {
-								Toast.makeText(getActivity().getApplicationContext(),
-										"Network Error",
-										Toast.LENGTH_SHORT).show();
+								Toast.makeText(getActivity().getApplicationContext(), "Network Error", Toast.LENGTH_SHORT).show();
 							}
 						} else {
 							final String requestId = values.getString("request");
 							if (requestId != null) {
-								Toast.makeText(getActivity().getApplicationContext(),
-										"Request sent",
-										Toast.LENGTH_SHORT).show();
+								Toast.makeText(getActivity().getApplicationContext(), "Request sent", Toast.LENGTH_SHORT).show();
 							} else {
-								Toast.makeText(getActivity().getApplicationContext(),
-										"Request cancelled",
-										Toast.LENGTH_SHORT).show();
+								Toast.makeText(getActivity().getApplicationContext(), "Request cancelled", Toast.LENGTH_SHORT).show();
 							}
 						}
 					}
 
-				})
-				.build();
+				}).build();
 		requestsDialog.show();
 	}
 
@@ -302,14 +312,15 @@ public class FacebookLoginFragment extends Fragment {
 		bi.compress(Bitmap.CompressFormat.JPEG, 100, baos);
 		data = baos.toByteArray();
 
-//		params.putString("method", "photos.upload");
+		// params.putString("method", "photos.upload");
 		params.putByteArray("picture", data);
 	}
 
-//	public void postImageonWall(Facebook facebook) {
-//		AsyncFacebookRunner mAsyncRunner = new AsyncFacebookRunner(facebook);
-//		mAsyncRunner.request(null, params, "POST", new SampleUploadListener(), null);
-//	}
+	// public void postImageonWall(Facebook facebook) {
+	// AsyncFacebookRunner mAsyncRunner = new AsyncFacebookRunner(facebook);
+	// mAsyncRunner.request(null, params, "POST", new SampleUploadListener(),
+	// null);
+	// }
 
 	class SampleUploadListener implements AsyncFacebookRunner.RequestListener {
 
@@ -350,4 +361,3 @@ public class FacebookLoginFragment extends Fragment {
 		}
 	}
 }
-
