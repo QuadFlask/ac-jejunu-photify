@@ -1,5 +1,12 @@
 package ac.jejunu.photify.fragment;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
+import ac.jejunu.photify.R;
+import ac.jejunu.photify.view.MasonryGridView;
+import ac.jejunu.photify.view.OnScrollBottomListener;
+import ac.jejunu.photify.view.UrlImageView;
 import android.content.Context;
 import android.support.v4.app.Fragment;
 import android.util.Log;
@@ -11,14 +18,6 @@ import android.widget.TextView;
 import com.googlecode.androidannotations.annotations.AfterViews;
 import com.googlecode.androidannotations.annotations.EFragment;
 import com.googlecode.androidannotations.annotations.ViewById;
-
-import java.net.MalformedURLException;
-import java.net.URL;
-
-import ac.jejunu.photify.R;
-import ac.jejunu.photify.view.MasonryGridView;
-import ac.jejunu.photify.view.OnScrollBottomListener;
-import ac.jejunu.photify.view.UrlImageView;
 
 @EFragment(R.layout.fragment_masonry)
 public class MasonryGridFragment extends Fragment implements OnScrollBottomListener {
@@ -35,11 +34,6 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		addSampleImages(32);
 		masonryGridView.addOnScrollBottomListener(this);
 	}
-
-	// TODO 현재 사용하는 pull to refresh가 더이상 관리 되지 않음.
-	// ㄷ따라서.... 새로운걸로 갈아타아껬당
-	// https://github.com/nhnopensource/android-pull-to-refresh
-	// 여기는 관리도 꽤 잘되고 좀더 다양한 옵션(탄성계수라던지) 조절을 할 수 있다고 한다!
 
 	@Override
 	public void onScrollBottom(int diff) {
@@ -66,9 +60,7 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 				"https://cdn1.iconfinder.com/data/icons/Map-Markers-Icons-Demo-PNG/256/Map-Marker-Marker-Outside-Pink.png",
 				height,
 				"https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash2/c5.5.65.65/s56x56/374637_189230964497111_247316888_t.jpg",
-				"Flask" + height,
-				"contents..."
-		);
+				"Flask" + height, "contents...");
 	}
 }
 
@@ -81,7 +73,9 @@ class GridItem extends LinearLayout {
 	private int defaultBackgroundColor = 0xffff00ff;
 	UrlImageView ivItemImage, ivProfilepic;
 
-	public GridItem(Context context, String photoUrl, int height, String profilePhoto, String name, String contents) throws MalformedURLException {
+	public GridItem(Context context, String photoUrl, int height,
+			String profilePhoto, String name, String contents)
+			throws MalformedURLException {
 		super(context);
 		this.photoUrl = photoUrl;
 		this.profilePhoto = profilePhoto;
@@ -94,7 +88,8 @@ class GridItem extends LinearLayout {
 		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
 		ivItemImage.setImageURL(new URL(photoUrl));
 		ivItemImage.setMaxWidth(220);
-		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
+		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(
+				LinearLayout.LayoutParams.FILL_PARENT, height));
 		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
 
 		ivProfilepic = (UrlImageView) view.findViewById(R.id.iv_profilepic);
