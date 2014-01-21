@@ -5,6 +5,7 @@ import java.io.FileNotFoundException;
 import java.io.InputStream;
 
 import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.HttpMethod;
@@ -47,7 +48,7 @@ public class WriteArticleClient {
 			if (!classPathResource.exists()) {
 				Log.e(TAG, "error on loading ClassPathResources");
 			}
-			formData.add("file", classPathResource);
+			formData.add("attach", new FileSystemResource(command.getAttachPath()));
 		}
 
 		@Override
