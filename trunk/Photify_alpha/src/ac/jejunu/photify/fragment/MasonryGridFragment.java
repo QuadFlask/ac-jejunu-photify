@@ -40,39 +40,57 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 
 	private static Gson gson;
 
+	private int lastNo = Integer.MAX_VALUE;
+	private boolean isReceived = true;
+	private boolean isOver = false;
+	private int limit = 6;
+
 	@AfterViews
 	void afterViews() {
 		masonryGridView = new MasonryGridView(getActivity(), 2);
 		scrollContainer.addView(masonryGridView);
-		
+		isOver = false;
+
 		masonryGridView.addOnScrollBottomListener(this);
 		gson = new Gson();
-		
+
 		getListFromServer();
 	}
 
 	@Override
 	public void onScrollBottom(int diff) {
-		if (diff <= 200) 
+		if (!isOver && diff <= 200)
 			getListFromServer();
 	}
 
 	@Background
 	public void getListFromServer() {
-		// TODO 가져올때 이미 가져온것은 가져 오지 않도록 해야함. 
-		// 또 파라미터 둬서 현재 몇번 인덱스까지 클라가 가지고 있으니 그 다음 부분을 보내줘.. 이런식으로 해줘야함,..,
-		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList("recent"), ArticleCommand[].class);
-		List<ArticleCommand> articleList = new ArrayList<ArticleCommand>();
+		synchronized (this){
+			if(isReceived){
+				isReceived = false;
+				try {
+					ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList("recent", lastNo, limit), ArticleCommand[].class);
+					List<ArticleCommand> articleList = new ArrayList<ArticleCommand>();
+					
+					if(data.length == 0) isOver= true;
+					
+					for (ArticleCommand a : data) {
+						articleList.add(a);
+						lastNo = Math.min(lastNo, a.getNo());
+					}
 		
-		for (ArticleCommand a : data)
-			articleList.add(a);
-
-		for (ArticleCommand a : articleList) {
-			try {
-				View gridView = makeGridView(a);
-				addGridItem(gridView);
-			} catch (Exception e) {
-				e.printStackTrace();
+					for (ArticleCommand a : articleList) {
+						try {
+							View gridView = makeGridView(a);
+							addGridItem(gridView);
+						} catch (Exception e) {
+							e.printStackTrace();
+						}
+					}
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				isReceived = true;
 			}
 		}
 	}
@@ -82,16 +100,17 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		masonryGridView.addView(item);
 	}
 
-	private View makeGridView(ArticleCommand c) throws MalformedURLException{
+	private View makeGridView(ArticleCommand c) throws MalformedURLException {
 		String id = c.getId();
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
-		
-		return new GridItem(getActivity(), 
+
+		return new GridItem(
+				getActivity(), 
 				fbArticle.getImages()[4].getSource(), 
-				(int)(fbArticle.getImages()[4].getHeight() * 232f / fbArticle.getImages()[4].getWidth()),
+				(int) (fbArticle.getImages()[4].getHeight() * 232f / fbArticle.getImages()[4].getWidth()),
 				fbArticle.getFrom().getProfileImage(),
 				fbArticle.getFrom().getName(), 
-				fbArticle.getName(),
+				fbArticle.getName(), 
 				c.getAvgColor());
 	}
 }
