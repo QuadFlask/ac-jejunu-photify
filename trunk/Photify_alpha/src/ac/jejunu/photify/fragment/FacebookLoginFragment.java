@@ -84,19 +84,6 @@ public class FacebookLoginFragment extends Fragment {
 
 		login();
 		checkLogin();
-		readFacebookPost();
-	}
-
-	@Background
-	void readFacebookPost() {
-
-		gson = new Gson();
-		String json = readArticleClient.getArticle("1413670895543729");
-		Log.e("FacebookLoginFragment", "json : " + json);
-		FacebookArticle fromJson = gson.fromJson(json, FacebookArticle.class);
-
-		System.out.println(fromJson.toString());
-
 	}
 
 	@Background

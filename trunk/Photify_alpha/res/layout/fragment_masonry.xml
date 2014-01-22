@@ -5,6 +5,6 @@
 	android:layout_height="match_parent"
 	android:orientation="vertical"
 	android:id="@+id/scroll_container"
-	android:background="#dedfd4">
+	android:background="#d3d3d3">
 
 </LinearLayout>

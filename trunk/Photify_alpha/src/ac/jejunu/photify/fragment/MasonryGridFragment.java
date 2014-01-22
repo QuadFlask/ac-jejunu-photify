@@ -13,6 +13,7 @@ import ac.jejunu.photify.view.GridItem;
 import ac.jejunu.photify.view.MasonryGridView;
 import ac.jejunu.photify.view.OnScrollBottomListener;
 import android.support.v4.app.Fragment;
+import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
 
@@ -103,6 +104,8 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 	private View makeGridView(ArticleCommand c) throws MalformedURLException {
 		String id = c.getId();
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
+		
+		Log.e("canvas", ""+c.getAvgcolor());
 
 		return new GridItem(
 				getActivity(), 
@@ -111,6 +114,6 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 				fbArticle.getFrom().getProfileImage(),
 				fbArticle.getFrom().getName(), 
 				fbArticle.getName(), 
-				c.getAvgColor());
+				c.getAvgcolor());
 	}
 }
