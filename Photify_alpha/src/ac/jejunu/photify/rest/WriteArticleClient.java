@@ -48,6 +48,7 @@ public class WriteArticleClient {
 
 				// Sending multipart/form-data
 				requestHeaders.setContentType(MediaType.MULTIPART_FORM_DATA);
+				requestHeaders.set("Connection", "Close");
 
 				// Populate the MultiValueMap being serialized and headers in an
 				// HttpEntity object to use for the request
