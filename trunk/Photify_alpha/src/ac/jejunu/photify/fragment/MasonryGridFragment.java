@@ -55,7 +55,7 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		
 		columns = Math.round(width / 240f);
 		limit = Math.round(width / 50f);
-		imageViewWidth = (width / columns - 4f * columns);
+		imageViewWidth = ((float) width / columns - 4f * 2f);
 		
 		lastNo = Integer.MAX_VALUE;
 		isReceived = true;
@@ -116,6 +116,7 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		
 		return new GridItem(getActivity(), //
 				fbArticle.getImages()[4].getSource(), //
+				Math.round(imageViewWidth),// LinearLayout.LayoutParams.MATCH_PARENT
 				(int) (fbArticle.getImages()[4].getHeight() * imageViewWidth / fbArticle.getImages()[4].getWidth()), //
 				fbArticle.getFrom().getProfileImage(), //
 				fbArticle.getFrom().getName(), //
