@@ -55,12 +55,8 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 	}
 
 	private View getSampleImageView(int height) throws MalformedURLException {
-		return new GridItem(
-				getActivity(),
-				"https://cdn1.iconfinder.com/data/icons/Map-Markers-Icons-Demo-PNG/256/Map-Marker-Marker-Outside-Pink.png",
-				height,
-				"https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash2/c5.5.65.65/s56x56/374637_189230964497111_247316888_t.jpg",
-				"Flask" + height, "contents...");
+		return new GridItem(getActivity(), "https://cdn1.iconfinder.com/data/icons/Map-Markers-Icons-Demo-PNG/256/Map-Marker-Marker-Outside-Pink.png", height,
+				"https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash2/c5.5.65.65/s56x56/374637_189230964497111_247316888_t.jpg", "Flask" + height, "contents...");
 	}
 }
 
@@ -73,9 +69,7 @@ class GridItem extends LinearLayout {
 	private int defaultBackgroundColor = 0xffff00ff;
 	UrlImageView ivItemImage, ivProfilepic;
 
-	public GridItem(Context context, String photoUrl, int height,
-			String profilePhoto, String name, String contents)
-			throws MalformedURLException {
+	public GridItem(Context context, String photoUrl, int height, String profilePhoto, String name, String contents) throws MalformedURLException {
 		super(context);
 		this.photoUrl = photoUrl;
 		this.profilePhoto = profilePhoto;
@@ -88,8 +82,7 @@ class GridItem extends LinearLayout {
 		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
 		ivItemImage.setImageURL(new URL(photoUrl));
 		ivItemImage.setMaxWidth(220);
-		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(
-				LinearLayout.LayoutParams.FILL_PARENT, height));
+		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
 		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
 
 		ivProfilepic = (UrlImageView) view.findViewById(R.id.iv_profilepic);

@@ -18,11 +18,11 @@ import org.apache.http.client.methods.HttpPost;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.message.BasicNameValuePair;
 
-public class DefaultRestController {
+public class DefaultRestClient {
 	private static final String TAG = "DefaultRestController";
 	private HttpClient httpClient;
 
-	public DefaultRestController() {
+	public DefaultRestClient() {
 		httpClient = new DefaultHttpClient();
 	}
 
@@ -57,5 +57,4 @@ public class DefaultRestController {
 		reader.close();
 		return result;
 	}
-
 }
