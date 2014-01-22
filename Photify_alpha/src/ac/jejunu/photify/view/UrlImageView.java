@@ -24,21 +24,21 @@ import android.widget.ImageView;
 /**
  * an {@link ImageView} supporting asynchronous loading from URL. Additional
  * APIs: {@link #setImageURL(URL)}, {@link #cancelLoading()}.
- *
+ * 
  * @author ep@gplushub.com / Eugen Plischke
  */
 public class UrlImageView extends ImageView {
-
+	
 	private static class UrlLoadingTask extends AsyncTask<URL, Void, Bitmap> {
 		private final ImageView updateView;
 		private boolean isCancelled = false;
-
+		
 		private InputStream urlInputStream;
-
+		
 		private UrlLoadingTask(ImageView updateView) {
 			this.updateView = updateView;
 		}
-
+		
 		@Override
 		protected Bitmap doInBackground(URL... params) {
 			try {
@@ -62,7 +62,7 @@ public class UrlImageView extends ImageView {
 				}
 			}
 		}
-
+		
 		@Override
 		protected void onPostExecute(Bitmap result) {
 			if (!this.isCancelled) {
@@ -70,7 +70,7 @@ public class UrlImageView extends ImageView {
 				this.updateView.setImageBitmap(result);
 			}
 		}
-
+		
 		/*
 		 * just remember that we were cancelled, no synchronization necessary
 		 */
@@ -92,60 +92,60 @@ public class UrlImageView extends ImageView {
 			}
 		}
 	}
-
+	
 	/*
-	   * track loading task to cancel it
-	   */
+	 * track loading task to cancel it
+	 */
 	private AsyncTask<URL, Void, Bitmap> currentLoadingTask;
-
+	
 	/*
-	   * just for sync
-	   */
+	 * just for sync
+	 */
 	private Object loadingMonitor = new Object();
-
+	
 	private int defaultBackgroundColor = 0xffccff00;
-
+	
 	private URL url;
-
+	
 	public UrlImageView(Context context, AttributeSet attrs, int defStyle) {
 		super(context, attrs, defStyle);
 	}
-
+	
 	public UrlImageView(Context context, AttributeSet attrs) {
 		super(context, attrs);
 	}
-
+	
 	public UrlImageView(Context context) {
 		super(context);
 	}
-
+	
 	@Override
 	public void setImageBitmap(Bitmap bm) {
 		cancelLoading();
 		super.setImageBitmap(bm);
 	}
-
+	
 	@Override
 	public void setImageDrawable(Drawable drawable) {
 		cancelLoading();
 		super.setImageDrawable(drawable);
 	}
-
+	
 	@Override
 	public void setImageResource(int resId) {
 		cancelLoading();
 		super.setImageResource(resId);
 	}
-
+	
 	@Override
 	public void setImageURI(Uri uri) {
 		cancelLoading();
 		super.setImageURI(uri);
 	}
-
+	
 	/**
 	 * loads image from given url
-	 *
+	 * 
 	 * @param url
 	 */
 	public void setImageURL(URL url) {
@@ -155,7 +155,7 @@ public class UrlImageView extends ImageView {
 			this.currentLoadingTask = new UrlLoadingTask(this).execute(url);
 		}
 	}
-
+	
 	@Override
 	public void setVisibility(int visibility) {
 		if (visibility != getVisibility()) {
@@ -164,11 +164,11 @@ public class UrlImageView extends ImageView {
 		}
 		super.setVisibility(visibility);
 	}
-
+	
 	public void reloadImage() {
 		this.setImageURL(this.url);
 	}
-
+	
 	private void delayedRecycle(int delayInSeconds) {
 		new Timer().schedule(new TimerTask() {
 			@Override
@@ -177,39 +177,39 @@ public class UrlImageView extends ImageView {
 			}
 		}, delayInSeconds * 1000);
 	}
-
+	
 	public void recycleImage() {
 		try {
 			cancelLoading();
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
-
+		
 		Drawable drawable = getDrawable();
 		if (drawable != null) {
 			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-			if (bitmap != null)
-				bitmap.recycle();
+			if (bitmap != null) bitmap.recycle();
 		}
 	}
-
+	
 	public void setDefaultBackgroundColor(int defaultBackgroundColor) {
 		this.defaultBackgroundColor = defaultBackgroundColor;
 	}
-
+	
 	@Override
 	protected void onDraw(Canvas canvas) {
 		Drawable drawable = getDrawable();
 		if (drawable != null) {
 			Bitmap bitmap = ((BitmapDrawable) drawable).getBitmap();
-			if (bitmap == null || bitmap.isRecycled()) {
-				canvas.drawColor(defaultBackgroundColor);
+			if (bitmap != null && !bitmap.isRecycled()) {
+				super.onDraw(canvas);
 				return;
 			}
 		}
-		super.onDraw(canvas);
+		
+		canvas.drawColor(defaultBackgroundColor);
 	}
-
+	
 	/**
 	 * cancels pending image loading
 	 */

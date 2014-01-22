@@ -16,9 +16,9 @@ public class GridItem extends LinearLayout {
 	private String profilePhoto;
 	private String name;
 	private String contents;
-	private int defaultBackgroundColor = 0xffff00ff;
+	private int defaultBackgroundColor = 0xffffffff;
 	private UrlImageView ivItemImage, ivProfilepic;
-
+	
 	public GridItem(Context context, String photoUrl, int height, String profilePhoto, String name, String contents, int defaultBackgroundColor) throws MalformedURLException {
 		super(context);
 		this.photoUrl = photoUrl;
@@ -26,26 +26,26 @@ public class GridItem extends LinearLayout {
 		this.name = name;
 		this.contents = contents;
 		this.defaultBackgroundColor = defaultBackgroundColor;
-
+		
 		LayoutInflater inflater = LayoutInflater.from(context);
 		view = inflater.inflate(R.layout.item, this);
-
+		
 		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
 		ivItemImage.setImageURL(new URL(photoUrl));
-		ivItemImage.setMaxWidth(240-8); // 각각 마진이 4px (dp 에서 바꿈...dp 계산 몬함...)
+		ivItemImage.setMaxWidth(240 - 8); // 각각 마진이 4px (dp 에서 바꿈...dp 계산 몬함...)
 		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
-		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
-
+		ivItemImage.setDefaultBackgroundColor(0xff000000 | defaultBackgroundColor);
+		
 		ivProfilepic = (UrlImageView) view.findViewById(R.id.iv_profilepic);
 		ivProfilepic.setImageURL(new URL(profilePhoto));
 		ivProfilepic.setDefaultBackgroundColor(0xffff00cc);
-
+		
 		TextView tvName = (TextView) view.findViewById(R.id.tv_name);
 		tvName.setText(name);
 		TextView tvContents = (TextView) view.findViewById(R.id.tv_contents);
 		tvContents.setText(contents);
 	}
-
+	
 	@Override
 	public void setVisibility(int visibility) {
 		ivItemImage.setVisibility(visibility);
