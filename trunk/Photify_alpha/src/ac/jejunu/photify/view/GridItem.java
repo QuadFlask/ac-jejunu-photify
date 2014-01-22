@@ -32,7 +32,7 @@ public class GridItem extends LinearLayout {
 
 		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
 		ivItemImage.setImageURL(new URL(photoUrl));
-		ivItemImage.setMaxWidth(220);
+		ivItemImage.setMaxWidth(240-8); // 각각 마진이 4px (dp 에서 바꿈...dp 계산 몬함...)
 		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
 		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
 

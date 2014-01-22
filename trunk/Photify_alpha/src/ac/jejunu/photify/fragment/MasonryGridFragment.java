@@ -87,8 +87,8 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
 		
 		return new GridItem(getActivity(), 
-				fbArticle.getImages()[3].getSource(), 
-				fbArticle.getImages()[3].getHeight(),
+				fbArticle.getImages()[4].getSource(), 
+				(int)(fbArticle.getImages()[4].getHeight() * 232f / fbArticle.getImages()[4].getWidth()),
 				fbArticle.getFrom().getProfileImage(),
 				fbArticle.getFrom().getName(), 
 				fbArticle.getName(),
