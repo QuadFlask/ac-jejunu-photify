@@ -8,7 +8,7 @@ import java.util.List;
 import ac.jejunu.photify.R;
 import ac.jejunu.photify.entity.FacebookArticle;
 import ac.jejunu.photify.rest.DefaultRestClient;
-import ac.jejunu.photify.rest.ReadArticleClient;
+import ac.jejunu.photify.rest.ReadFacebookArticleClient;
 import ac.jejunu.photify.rest.ServerIpAddress;
 import android.content.Intent;
 import android.content.pm.PackageInfo;
@@ -46,7 +46,7 @@ public class FacebookLoginFragment extends Fragment {
 	LoginButton authButton;
 
 	@RestService
-	ReadArticleClient readArticleClient;
+	ReadFacebookArticleClient readArticleClient;
 
 	Gson gson;
 

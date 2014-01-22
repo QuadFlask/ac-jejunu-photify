@@ -14,6 +14,8 @@ public class ArticleCommand {
 
 	private String attachPath;
 
+	private int avgColor = 0xffffff;
+
 	public int getLikecnt() {
 		return likecnt;
 	}
@@ -76,6 +78,14 @@ public class ArticleCommand {
 
 	public void setAttachPath(String attachPath) {
 		this.attachPath = attachPath;
+	}
+
+	public int getAvgColor() {
+		return avgColor;
+	}
+
+	public void setAvgColor(int avgColor) {
+		this.avgColor = avgColor;
 	}
 
 }

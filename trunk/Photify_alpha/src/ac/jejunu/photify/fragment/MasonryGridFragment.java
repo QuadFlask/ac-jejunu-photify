@@ -1,23 +1,28 @@
 package ac.jejunu.photify.fragment;
 
 import java.net.MalformedURLException;
-import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
 
 import ac.jejunu.photify.R;
+import ac.jejunu.photify.entity.ArticleCommand;
+import ac.jejunu.photify.entity.FacebookArticle;
+import ac.jejunu.photify.rest.ReadArticleClient;
+import ac.jejunu.photify.rest.ReadFacebookArticleClient;
+import ac.jejunu.photify.view.GridItem;
 import ac.jejunu.photify.view.MasonryGridView;
 import ac.jejunu.photify.view.OnScrollBottomListener;
-import ac.jejunu.photify.view.UrlImageView;
-import android.content.Context;
 import android.support.v4.app.Fragment;
-import android.util.Log;
-import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
-import android.widget.TextView;
 
+import com.google.gson.Gson;
 import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.Background;
 import com.googlecode.androidannotations.annotations.EFragment;
+import com.googlecode.androidannotations.annotations.UiThread;
 import com.googlecode.androidannotations.annotations.ViewById;
+import com.googlecode.androidannotations.annotations.rest.RestService;
 
 @EFragment(R.layout.fragment_masonry)
 public class MasonryGridFragment extends Fragment implements OnScrollBottomListener {
@@ -25,79 +30,68 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 	@ViewById(R.id.scroll_container)
 	LinearLayout scrollContainer;
 
+	@RestService
+	ReadArticleClient readArticleClient;
+
+	@RestService
+	ReadFacebookArticleClient readFacebookArticleClient;
+
 	private MasonryGridView masonryGridView;
+
+	private static Gson gson;
 
 	@AfterViews
 	void afterViews() {
 		masonryGridView = new MasonryGridView(getActivity(), 2);
 		scrollContainer.addView(masonryGridView);
-		addSampleImages(32);
+		
 		masonryGridView.addOnScrollBottomListener(this);
+		gson = new Gson();
+		
+		getListFromServer();
 	}
 
 	@Override
 	public void onScrollBottom(int diff) {
-		if (diff <= 200) {
-			Log.e("MasonryGridFragment", "scroll is bottom!");
-			addSampleImages(8);
-		}
+		if (diff <= 200) 
+			getListFromServer();
 	}
 
-	private void addSampleImages(int count) {
-		try {
-			for (int i = 0; i < count; i++) {
-				int height = (int) (80 + Math.random() * 250);
-				masonryGridView.addView(getSampleImageView(height));
+	@Background
+	public void getListFromServer() {
+		// TODO 가져올때 이미 가져온것은 가져 오지 않도록 해야함. 
+		// 또 파라미터 둬서 현재 몇번 인덱스까지 클라가 가지고 있으니 그 다음 부분을 보내줘.. 이런식으로 해줘야함,..,
+		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList("recent"), ArticleCommand[].class);
+		List<ArticleCommand> articleList = new ArrayList<ArticleCommand>();
+		
+		for (ArticleCommand a : data)
+			articleList.add(a);
+
+		for (ArticleCommand a : articleList) {
+			try {
+				View gridView = makeGridView(a);
+				addGridItem(gridView);
+			} catch (Exception e) {
+				e.printStackTrace();
 			}
-		} catch (MalformedURLException e) {
-			e.printStackTrace();
 		}
 	}
 
-	private View getSampleImageView(int height) throws MalformedURLException {
-		return new GridItem(getActivity(), "https://cdn1.iconfinder.com/data/icons/Map-Markers-Icons-Demo-PNG/256/Map-Marker-Marker-Outside-Pink.png", height,
-				"https://fbcdn-profile-a.akamaihd.net/hprofile-ak-ash2/c5.5.65.65/s56x56/374637_189230964497111_247316888_t.jpg", "Flask" + height, "contents...");
-	}
-}
-
-class GridItem extends LinearLayout {
-	private View view;
-	private String photoUrl;
-	private String profilePhoto;
-	private String name;
-	private String contents;
-	private int defaultBackgroundColor = 0xffff00ff;
-	UrlImageView ivItemImage, ivProfilepic;
-
-	public GridItem(Context context, String photoUrl, int height, String profilePhoto, String name, String contents) throws MalformedURLException {
-		super(context);
-		this.photoUrl = photoUrl;
-		this.profilePhoto = profilePhoto;
-		this.name = name;
-		this.contents = contents;
-
-		LayoutInflater inflater = LayoutInflater.from(context);
-		view = inflater.inflate(R.layout.item, this);
-
-		ivItemImage = (UrlImageView) view.findViewById(R.id.item_image);
-		ivItemImage.setImageURL(new URL(photoUrl));
-		ivItemImage.setMaxWidth(220);
-		ivItemImage.setLayoutParams(new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, height));
-		ivItemImage.setDefaultBackgroundColor(defaultBackgroundColor);
-
-		ivProfilepic = (UrlImageView) view.findViewById(R.id.iv_profilepic);
-		ivProfilepic.setImageURL(new URL(profilePhoto));
-		ivProfilepic.setDefaultBackgroundColor(0xffff00cc);
-
-		TextView tvName = (TextView) view.findViewById(R.id.tv_name);
-		tvName.setText(name);
-		TextView tvContents = (TextView) view.findViewById(R.id.tv_contents);
-		tvContents.setText(contents);
+	@UiThread
+	public void addGridItem(View item) {
+		masonryGridView.addView(item);
 	}
 
-	@Override
-	public void setVisibility(int visibility) {
-		ivItemImage.setVisibility(visibility);
-		ivProfilepic.setVisibility(visibility);
+	private View makeGridView(ArticleCommand c) throws MalformedURLException{
+		String id = c.getId();
+		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
+		
+		return new GridItem(getActivity(), 
+				fbArticle.getImages()[3].getSource(), 
+				fbArticle.getImages()[3].getHeight(),
+				fbArticle.getFrom().getProfileImage(),
+				fbArticle.getFrom().getName(), 
+				fbArticle.getName(),
+				c.getAvgColor());
 	}
 }
