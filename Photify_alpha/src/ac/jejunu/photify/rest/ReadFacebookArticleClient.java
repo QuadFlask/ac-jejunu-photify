@@ -5,10 +5,10 @@ import org.springframework.http.converter.StringHttpMessageConverter;
 import com.googlecode.androidannotations.annotations.rest.Get;
 import com.googlecode.androidannotations.annotations.rest.Rest;
 
-@Rest(rootUrl = ServerIpAddress.IP, converters = { StringHttpMessageConverter.class })
-public interface ReadArticleClient {
-
-	@Get("/getArticleList/{orderby}.photo")
-	public String readArticleList(String orderby);
+@Rest(rootUrl = "http://graph.facebook.com", converters = { StringHttpMessageConverter.class })
+public interface ReadFacebookArticleClient {
+	
+	@Get("/{postId}")
+	public String getArticle(String postId);
 
 }

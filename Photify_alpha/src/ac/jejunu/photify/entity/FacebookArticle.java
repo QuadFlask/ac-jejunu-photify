@@ -114,6 +114,10 @@ public class FacebookArticle {
 		public void setId(String id) {
 			this.id = id;
 		}
+
+		public String getProfileImage() {
+			return "http://graph.facebook.com/" + getId() + "/picture";
+		}
 	}
 
 	public class Image {
