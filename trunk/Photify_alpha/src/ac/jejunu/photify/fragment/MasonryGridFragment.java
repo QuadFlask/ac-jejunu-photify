@@ -55,7 +55,7 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		
 		columns = Math.round(width / 240f);
 		limit = Math.round(width / 50f);
-		imageViewWidth = (width - 4f * columns) / columns;
+		imageViewWidth = (width / columns - 4f * columns);
 		
 		lastNo = Integer.MAX_VALUE;
 		isReceived = true;
