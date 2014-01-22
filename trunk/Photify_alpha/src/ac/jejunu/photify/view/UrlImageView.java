@@ -6,7 +6,6 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Timer;
 import java.util.TimerTask;
-import java.util.concurrent.Delayed;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -160,22 +159,34 @@ public class UrlImageView extends ImageView {
 	public void setVisibility(int visibility) {
 		if (visibility != getVisibility()) {
 			if (visibility == View.VISIBLE) reloadImage();
-			else delayedRecycle(5);
+			else delayedRecycle(8);
 		}
 		super.setVisibility(visibility);
 	}
 	
 	public void reloadImage() {
+		cancelDelayedRecycle();
 		this.setImageURL(this.url);
 	}
 	
+	private Timer recycleTimer = new Timer();
+	
 	private void delayedRecycle(int delayInSeconds) {
-		new Timer().schedule(new TimerTask() {
+		cancelDelayedRecycle();
+		recycleTimer.schedule(new TimerTask() {
 			@Override
 			public void run() {
 				recycleImage();
 			}
 		}, delayInSeconds * 1000);
+	}
+	
+	public void cancelDelayedRecycle() {
+		if (recycleTimer != null) {
+			recycleTimer.cancel();
+			recycleTimer.purge();
+			recycleTimer = new Timer();
+		}
 	}
 	
 	public void recycleImage() {
@@ -195,6 +206,10 @@ public class UrlImageView extends ImageView {
 	public void setDefaultBackgroundColor(int defaultBackgroundColor) {
 		this.defaultBackgroundColor = defaultBackgroundColor;
 	}
+	
+	// TODO 로드가 완료 되서 이미지를 표시할때 페이드 아웃 해줘야 함....
+	// 모서리가 라운드 되어야 함. 
+	// 모서리 선택할 수 있도록? 아니면 걍 모든 모서리를??
 	
 	@Override
 	protected void onDraw(Canvas canvas) {

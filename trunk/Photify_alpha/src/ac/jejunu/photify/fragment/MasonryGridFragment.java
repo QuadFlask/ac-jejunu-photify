@@ -12,9 +12,11 @@ import ac.jejunu.photify.rest.ReadFacebookArticleClient;
 import ac.jejunu.photify.view.GridItem;
 import ac.jejunu.photify.view.MasonryGridView;
 import ac.jejunu.photify.view.OnScrollBottomListener;
+import android.content.Context;
 import android.support.v4.app.Fragment;
-import android.util.Log;
+import android.view.Display;
 import android.view.View;
+import android.view.WindowManager;
 import android.widget.LinearLayout;
 
 import com.google.gson.Gson;
@@ -27,63 +29,70 @@ import com.googlecode.androidannotations.annotations.rest.RestService;
 
 @EFragment(R.layout.fragment_masonry)
 public class MasonryGridFragment extends Fragment implements OnScrollBottomListener {
-
+	private static Gson gson = new Gson();
+	
 	@ViewById(R.id.scroll_container)
 	LinearLayout scrollContainer;
-
+	
 	@RestService
 	ReadArticleClient readArticleClient;
-
+	
 	@RestService
 	ReadFacebookArticleClient readFacebookArticleClient;
-
+	
 	private MasonryGridView masonryGridView;
-
-	private static Gson gson;
-
+	
 	private int lastNo = Integer.MAX_VALUE;
+	private int limit = 8, columns = 3;
 	private boolean isReceived = true;
 	private boolean isOver = false;
-	private int limit = 6;
-
+	private float imageViewWidth = 232f;
+	
 	@AfterViews
 	void afterViews() {
-		masonryGridView = new MasonryGridView(getActivity(), 2);
-		scrollContainer.addView(masonryGridView);
+		Display d = ((WindowManager) getActivity().getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		int width = d.getWidth();
+		
+		columns = Math.round(width / 240f);
+		limit = Math.round(width / 50f);
+		imageViewWidth = (width - 4f * columns) / columns;
+		
+		lastNo = Integer.MAX_VALUE;
+		isReceived = true;
 		isOver = false;
-
+		
+		masonryGridView = new MasonryGridView(getActivity(), columns);
+		scrollContainer.addView(masonryGridView);
+		
 		masonryGridView.addOnScrollBottomListener(this);
-		gson = new Gson();
-
-		getListFromServer();
+		
+		getListFromServer(limit);
 	}
-
+	
 	@Override
 	public void onScrollBottom(int diff) {
-		if (!isOver && diff <= 200)
-			getListFromServer();
+		if (!isOver && diff <= 300) getListFromServer(limit);
 	}
-
+	
 	@Background
-	public void getListFromServer() {
-		synchronized (this){
-			if(isReceived){
+	public void getListFromServer(int limit) {
+		synchronized (this) {
+			if (isReceived) {
 				isReceived = false;
 				try {
 					ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList("recent", lastNo, limit), ArticleCommand[].class);
 					List<ArticleCommand> articleList = new ArrayList<ArticleCommand>();
 					
-					if(data.length == 0) isOver= true;
+					if (data.length == 0) {
+						isOver = true;
+						return;
+					}
 					
 					for (ArticleCommand a : data) {
-						articleList.add(a);
-						lastNo = Math.min(lastNo, a.getNo());
-					}
-		
-					for (ArticleCommand a : articleList) {
 						try {
-							View gridView = makeGridView(a);
-							addGridItem(gridView);
+							articleList.add(a);
+							addGridItem(makeGridView(a));
+							lastNo = Math.min(lastNo, a.getNo());
 						} catch (Exception e) {
 							e.printStackTrace();
 						}
@@ -95,25 +104,22 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 			}
 		}
 	}
-
+	
 	@UiThread
 	public void addGridItem(View item) {
 		masonryGridView.addView(item);
 	}
-
+	
 	private View makeGridView(ArticleCommand c) throws MalformedURLException {
 		String id = c.getId();
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
 		
-		Log.e("canvas", ""+c.getAvgcolor());
-
-		return new GridItem(
-				getActivity(), 
-				fbArticle.getImages()[4].getSource(), 
-				(int) (fbArticle.getImages()[4].getHeight() * 232f / fbArticle.getImages()[4].getWidth()),
-				fbArticle.getFrom().getProfileImage(),
-				fbArticle.getFrom().getName(), 
-				fbArticle.getName(), 
-				c.getAvgcolor());
+		return new GridItem(getActivity(), //
+				fbArticle.getImages()[4].getSource(), //
+				(int) (fbArticle.getImages()[4].getHeight() * imageViewWidth / fbArticle.getImages()[4].getWidth()), //
+				fbArticle.getFrom().getProfileImage(), //
+				fbArticle.getFrom().getName(), //
+				fbArticle.getName(), //
+				c.getAvgcolor());//
 	}
 }
