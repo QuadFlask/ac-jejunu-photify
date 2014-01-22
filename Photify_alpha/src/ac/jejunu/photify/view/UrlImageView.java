@@ -6,6 +6,7 @@ import java.net.URL;
 import java.net.URLConnection;
 import java.util.Timer;
 import java.util.TimerTask;
+import java.util.concurrent.Delayed;
 
 import android.content.Context;
 import android.graphics.Bitmap;
@@ -81,7 +82,7 @@ public class UrlImageView extends ImageView {
 					try {
 						this.urlInputStream.close();
 					} catch (IOException e) {
-						;// swallow
+						e.printStackTrace();
 					} finally {
 						this.urlInputStream = null;
 					}

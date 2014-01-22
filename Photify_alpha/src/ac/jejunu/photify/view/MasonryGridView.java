@@ -30,7 +30,8 @@ public class MasonryGridView extends ScrollView {
 
 		int[] backgroundColor = new int[] { 0xffff0000, 0xffff8800, 0xffff00ff, 0xff00ff00, 0xff00ffff, 0xff0000ff };
 		for (int i = 0; i < Math.max(1, column); i++) {
-			StackLinearLayout stackLinearLayout = new StackLinearLayout(context, new LinearLayout.LayoutParams(240, LinearLayout.LayoutParams.WRAP_CONTENT, 1f), LinearLayout.VERTICAL);
+			StackLinearLayout stackLinearLayout = new StackLinearLayout(context, new LinearLayout.LayoutParams(240, LinearLayout.LayoutParams.WRAP_CONTENT, 1f),
+					LinearLayout.VERTICAL);
 			stackLinearLayout.setBackgroundColor(backgroundColor[i]);
 			columns.add(stackLinearLayout);
 		}
@@ -53,7 +54,8 @@ public class MasonryGridView extends ScrollView {
 	private StackLinearLayout getMinimumHeightLayout() {
 		StackLinearLayout min = columns.get(0);
 		for (StackLinearLayout col : columns)
-			if (min.getHeight() > col.getHeight()) min = col;
+			if (min.getHeight() > col.getHeight())
+				min = col;
 		return min;
 	}
 
@@ -62,8 +64,10 @@ public class MasonryGridView extends ScrollView {
 		super.onScrollChanged(l, t, oldl, oldt);
 		Rect scrollBounds = new Rect();
 		for (View view : children) {
-			if (!view.getLocalVisibleRect(scrollBounds)) view.setVisibility(View.INVISIBLE);
-			else view.setVisibility(View.VISIBLE);
+			if (!view.getLocalVisibleRect(scrollBounds))
+				view.setVisibility(View.INVISIBLE);
+			else
+				view.setVisibility(View.VISIBLE);
 		}
 		fireOnScrollBottom();
 	}
@@ -76,6 +80,14 @@ public class MasonryGridView extends ScrollView {
 
 	public void addOnScrollBottomListener(OnScrollBottomListener onScrollBottomListener) {
 		onScrollBottomListeners.add(onScrollBottomListener);
+	}
+
+	public void removeOnScrollBottomListener(OnScrollBottomListener onScrollBottomListener) {
+		onScrollBottomListeners.remove(onScrollBottomListener);
+	}
+
+	public void removeAllOnScrollBottomListener() {
+		onScrollBottomListeners.clear();
 	}
 }
 
@@ -99,12 +111,15 @@ class StackLinearLayout {
 
 	public void addView(View view) {
 		layout.addView(view);
-
-		view.measure(ViewGroup.MeasureSpec.UNSPECIFIED, ViewGroup.MeasureSpec.UNSPECIFIED);
-		height += view.getMeasuredHeight();
+		increaseHeight(view);
 	}
 
 	public LinearLayout getLayout() {
 		return layout;
+	}
+
+	private void increaseHeight(View view) {
+		view.measure(ViewGroup.MeasureSpec.UNSPECIFIED, ViewGroup.MeasureSpec.UNSPECIFIED);
+		height += view.getMeasuredHeight();
 	}
 }
