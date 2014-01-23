@@ -52,7 +52,7 @@ public class MapFragment extends Fragment implements ConnectionCallbacks, OnConn
 		return rootView;
 	}
 	
-	private static final LocationRequest REQUEST = LocationRequest.create().setInterval(5000) // 5seconds
+	private static final LocationRequest REQUEST = LocationRequest.create().setInterval(2000) // 5seconds
 			.setFastestInterval(16) // 16ms = 60fps
 			.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 	
@@ -60,10 +60,14 @@ public class MapFragment extends Fragment implements ConnectionCallbacks, OnConn
 	public void onDestroyView() {
 		super.onDestroyView();
 		
-		Fragment fragment = (getFragmentManager().findFragmentById(R.id.map));
-		FragmentTransaction ft = getFragmentManager().beginTransaction();
-		ft.remove(fragment);
-		ft.commit();
+		try{
+			Fragment fragment = (getFragmentManager().findFragmentById(R.id.map));
+			FragmentTransaction ft = getFragmentManager().beginTransaction();
+			ft.remove(fragment);
+			ft.commit();
+		}catch(Exception e){
+			e.printStackTrace();
+		}
 	}
 	
 	@Override
