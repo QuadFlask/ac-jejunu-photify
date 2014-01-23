@@ -10,5 +10,8 @@ public interface ReadFacebookArticleClient {
 	
 	@Get("/{postId}")
 	public String getArticle(String postId);
-
+	
+	@Get("/{postId}/likes?summary=true")
+	public String getLikeCount(String postId);
+	
 }

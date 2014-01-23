@@ -7,6 +7,7 @@ import java.util.List;
 import ac.jejunu.photify.R;
 import ac.jejunu.photify.entity.ArticleCommand;
 import ac.jejunu.photify.entity.FacebookArticle;
+import ac.jejunu.photify.entity.LikeCount;
 import ac.jejunu.photify.rest.ReadArticleClient;
 import ac.jejunu.photify.rest.ReadFacebookArticleClient;
 import ac.jejunu.photify.view.GridItem;
@@ -113,6 +114,10 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 	private View makeGridView(ArticleCommand c) throws MalformedURLException {
 		String id = c.getId();
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);
+		LikeCount likeCount = gson.fromJson(readFacebookArticleClient.getLikeCount(id), LikeCount.class);
+		int commentCount = 0;
+		if (fbArticle.getComments() != null && fbArticle.getComments().getData() != null)
+			commentCount = fbArticle.getComments().getData().length;
 		
 		return new GridItem(getActivity(), //
 				fbArticle.getImages()[4].getSource(), //
@@ -121,6 +126,8 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 				fbArticle.getFrom().getProfileImage(), //
 				fbArticle.getFrom().getName(), //
 				fbArticle.getName(), //
+				likeCount.getTotalCount(), //
+				commentCount, // fbArticle.getComments().getData().length
 				c.getAvgcolor());//
 	}
 }

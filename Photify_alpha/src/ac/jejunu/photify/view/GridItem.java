@@ -19,7 +19,8 @@ public class GridItem extends LinearLayout {
 	private int defaultBackgroundColor = 0xffffffff;
 	private UrlImageView ivItemImage, ivProfilepic;
 	
-	public GridItem(Context context, String photoUrl, int width, int height, String profilePhoto, String name, String contents, int defaultBackgroundColor) throws MalformedURLException {
+	public GridItem(Context context, String photoUrl, int width, int height, String profilePhoto, String name, String contents, int likes, int comments, int defaultBackgroundColor)
+			throws MalformedURLException {
 		super(context);
 		this.photoUrl = photoUrl;
 		this.profilePhoto = profilePhoto;
@@ -43,6 +44,10 @@ public class GridItem extends LinearLayout {
 		tvName.setText(name);
 		TextView tvContents = (TextView) view.findViewById(R.id.tv_contents);
 		tvContents.setText(contents);
+		TextView tvLikeCount = (TextView) view.findViewById(R.id.tv_like_count);
+		tvLikeCount.setText("" + likes);
+		TextView tvCommentCount = (TextView) view.findViewById(R.id.tv_comment_count);
+		tvCommentCount.setText("" + comments);
 	}
 	
 	@Override
