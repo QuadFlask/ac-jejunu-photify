@@ -2,6 +2,7 @@ package ac.jejunu.photify;
 
 import ac.jejunu.photify.activity.PhotoInputActivity;
 import ac.jejunu.photify.fragment.FacebookLoginFragment_;
+import ac.jejunu.photify.fragment.MapFragment;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
 import ac.jejunu.photify.fragment.TestFragment;
 import android.app.ActionBar;
@@ -50,6 +51,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		final ActionBar actionBar = getActionBar();
 		actionBar.setNavigationMode(ActionBar.NAVIGATION_MODE_TABS);
 		
+		actionBar.setDisplayShowTitleEnabled(false);
+		actionBar.setDisplayShowHomeEnabled(false);
+		
 		// Create the adapter that will return a fragment for each of the three
 		// primary sections of the app.
 		mSectionsPagerAdapter = new SectionsPagerAdapter(getSupportFragmentManager());
@@ -91,7 +95,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		
 		LinearLayout.LayoutParams paramlinear = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
 		win.addContentView(linear, paramlinear);
-		
 	}
 	
 	private void initialize() {
@@ -166,10 +169,11 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	}
 	
 	public static class FragmentPlaceHolder {
-		private Fragment[] fragments = new Fragment[] {
-				// new PostFragment(),
-				new MasonryGridFragment_(), new FacebookLoginFragment_(), new TestFragment(), new TestFragment(),
-		// new TestFragment(),
+		private Fragment[] fragments = new Fragment[] {//
+		new MasonryGridFragment_(), //
+				new FacebookLoginFragment_(), //
+				new MapFragment(), //
+				new TestFragment(), //
 		};
 		private String[] titles = new String[] { "TEST1", "TEST2", "TEST3", "TEST4", "TEST5", };
 		
