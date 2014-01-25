@@ -40,25 +40,6 @@ public class PhotoMarker implements ClusterItem, OnUrlImageLoadCompletedCallback
 		}
 	}
 	
-	public void cancelLoading() {
-		synchronized (loadingMonitor) {
-			if (this.currentLoadingTask != null) {
-				this.currentLoadingTask.cancel(true);
-				this.currentLoadingTask = null;
-			}
-		}
-	}
-	
-	public void recycleImage() {
-		try {
-			cancelLoading();
-		} catch (Exception e) {
-			e.printStackTrace();
-		}
-		
-		if (getBitmap() != null) getBitmap().recycle();
-	}
-	
 	private static class UrlLoadingTask extends AsyncTask<URL, Void, Bitmap> {
 		private boolean isCancelled = false;
 		
@@ -126,6 +107,25 @@ public class PhotoMarker implements ClusterItem, OnUrlImageLoadCompletedCallback
 	public void onCompleted(Bitmap bitmap) {
 		this.bitmap = bitmap;
 		if (callback != null) callback.onCompleted();
+	}
+	
+	public void cancelLoading() {
+		synchronized (loadingMonitor) {
+			if (this.currentLoadingTask != null) {
+				this.currentLoadingTask.cancel(true);
+				this.currentLoadingTask = null;
+			}
+		}
+	}
+	
+	public void recycleImage() {
+		try {
+			cancelLoading();
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+		
+		if (getBitmap() != null) getBitmap().recycle();
 	}
 	
 	@Override

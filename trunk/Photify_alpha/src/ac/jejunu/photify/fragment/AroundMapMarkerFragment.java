@@ -1,9 +1,16 @@
 package ac.jejunu.photify.fragment;
 
-import java.util.Random;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.util.HashSet;
 
 import ac.jejunu.photify.R;
-import ac.jejunu.photify.entity.Person;
+import ac.jejunu.photify.entity.ArticleCommand;
+import ac.jejunu.photify.entity.FacebookArticle;
+import ac.jejunu.photify.entity.PhotoMarker;
+import ac.jejunu.photify.rest.ReadArticleClient;
+import ac.jejunu.photify.rest.ReadFacebookArticleClient;
+import ac.jejunu.photify.view.OnUrlImageLoadCompletedCallback;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
@@ -28,31 +35,45 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.CameraPosition;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
+import com.google.gson.Gson;
 import com.google.maps.android.clustering.Cluster;
 import com.google.maps.android.clustering.ClusterManager;
 import com.google.maps.android.clustering.view.DefaultClusterRenderer;
 import com.google.maps.android.ui.IconGenerator;
 import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.Background;
 import com.googlecode.androidannotations.annotations.EFragment;
 import com.googlecode.androidannotations.annotations.UiThread;
+import com.googlecode.androidannotations.annotations.rest.RestService;
 
 @EFragment(R.layout.activity_map)
 public class AroundMapMarkerFragment extends Fragment implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener, OnCameraChangeListener,
-		ClusterManager.OnClusterClickListener<Person>, ClusterManager.OnClusterInfoWindowClickListener<Person>, ClusterManager.OnClusterItemClickListener<Person>,
-		ClusterManager.OnClusterItemInfoWindowClickListener<Person> {
+		ClusterManager.OnClusterClickListener<PhotoMarker>, ClusterManager.OnClusterInfoWindowClickListener<PhotoMarker>, ClusterManager.OnClusterItemClickListener<PhotoMarker>,
+		ClusterManager.OnClusterItemInfoWindowClickListener<PhotoMarker> {
 	
 	private GoogleMap map;
 	private LocationClient locationClient;
-	private ClusterManager<Person> clusterManager;
+	private ClusterManager<PhotoMarker> clusterManager;
 	boolean isFirst = true;
-	
 	private static final LocationRequest REQUEST = LocationRequest.create().setInterval(5000) // 5
-																								// seconds
+			// seconds
 			.setFastestInterval(16) // 16ms = 60fps
 			.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 	
+	@RestService
+	ReadArticleClient readArticleClient;
+	
+	@RestService
+	ReadFacebookArticleClient readFacebookArticleClient;
+	
 	@AfterViews
 	public void afterViews() {
+		initMap();
+	}
+	
+	@Override
+	public void onResume() {
+		super.onResume();
 		initMap();
 	}
 	
@@ -62,12 +83,10 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		}
 		locationClient.connect();
 		
-		if (!isMapExist()) {
-			map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
-		}
+		if (!isMapExist()) map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		if (isMapExist()) {
-			clusterManager = new ClusterManager<Person>(getActivity(), map);
-			clusterManager.setRenderer(new PersonRenderer(map));
+			clusterManager = new ClusterManager<PhotoMarker>(getActivity(), map);
+			clusterManager.setRenderer(new PhotoMarkerRenderer(map));
 			clusterManager.setOnClusterClickListener(this);
 			clusterManager.setOnClusterInfoWindowClickListener(this);
 			clusterManager.setOnClusterItemClickListener(this);
@@ -77,23 +96,8 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 			map.setOnCameraChangeListener(clusterManager);
 			map.setOnMarkerClickListener(clusterManager);
 			map.setOnInfoWindowClickListener(clusterManager);
-			map.setOnCameraChangeListener(new OnCameraChangeListener() {
-				@Override
-				public void onCameraChange(CameraPosition cameraPosition) {
-					// Make a web call for the locations
-					LatLng abc = map.getCameraPosition().target;
-					double lat = abc.latitude;
-					double longti = abc.longitude;
-					
-					Toast toastView = Toast.makeText(getActivity(), Double.toString(lat) + ", " + Double.toString(longti), Toast.LENGTH_LONG);
-					toastView.show();
-					
-					clusterManager.addItem(new Person(position(), "Teach", R.drawable.daumlogo));
-					updateClusters();
-				}
-			});
+			map.setOnCameraChangeListener(this);
 			
-			addItems();
 			updateClusters();
 		}
 	}
@@ -102,19 +106,34 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		return map != null;
 	}
 	
+	@Background
+	void makeItem(LatLng position, URL url) {
+		final PhotoMarker photoMarker = new PhotoMarker("", position);
+		photoMarker.setImageURL(url, new OnUrlImageLoadCompletedCallback() {
+			public void onCompleted() {
+				clusterManager.addItem(photoMarker);
+				updateClusters();
+			}
+			
+			@Override
+			public void onCompleted(Bitmap bitmap) {
+			}
+		});
+	}
+	
 	@UiThread
 	void updateClusters() {
 		clusterManager.cluster();
 	}
 	
-	private class PersonRenderer extends DefaultClusterRenderer<Person> {
+	private class PhotoMarkerRenderer extends DefaultClusterRenderer<PhotoMarker> {
 		private final IconGenerator mIconGenerator = new IconGenerator(getActivity());
 		private final IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
 		private final ImageView mImageView;
 		private final ImageView mClusterImageView;
 		private final int mDimension;
 		
-		public PersonRenderer(GoogleMap mMap) {
+		public PhotoMarkerRenderer(GoogleMap mMap) {
 			super(getActivity(), mMap, clusterManager);
 			
 			View multiProfile = getActivity().getLayoutInflater().inflate(R.layout.multi_profile, null);
@@ -130,76 +149,18 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 			mIconGenerator.setContentView(mImageView);
 		}
 		
-		// 우리는 각각 마커로 그리기 때문에
-		// 클러스터로 그리지 않기에 onBeforeClusterRendered()는 필요가 없음.
-		// 바로 이 onBeforeClusterItemRendered() 이 함수만 호출됨.
-		// @Override
-		// protected void onBeforeClusterItemRendered(Person person,
-		// MarkerOptions markerOptions) {
-		// Draw a single person.
-		// Set the info window to show their name.
-		// mImageView.setImageResource(person.profilePhoto); // 그냥 여기에
-		// Drawable
-		// 을 셋팅해 주면 될거
-		// 같음.
-		// Bitmap icon = mIconGenerator.makeIcon();
-		// markerOptions.icon(BitmapDescriptorFactory.fromBitmap(icon)).title(person.name);
-		// }
-		
 		@Override
-		protected void onClusterItemRendered(Person clusterItem, Marker marker) {
+		protected void onClusterItemRendered(PhotoMarker clusterItem, Marker marker) {
 			super.onClusterItemRendered(clusterItem, marker);
-			mImageView.setImageResource(R.drawable.daumlogo);// 여기서 그냥 clusterItem으로 부터 리소스 받아다가 아이콘 그리도록 하면돨듯!
-			// 당연히 드로워블로 던져줘야함.
+			mImageView.setImageBitmap(clusterItem.getBitmap());
 			Bitmap icon = mIconGenerator.makeIcon();
 			marker.setIcon(BitmapDescriptorFactory.fromBitmap(icon));
 		}
 		
-//		@Override
-//		protected void onClusterRendered(Cluster<Person> cluster, Marker marker) {
-//			super.onClusterRendered(cluster, marker);
-//			Log.e("onClusterRendered", "size : " + cluster.getSize());
-//			
-//			for (Person p : cluster.getItems()) {
-//				mImageView.setImageResource(p.profilePhoto);
-//				Bitmap icon = mIconGenerator.makeIcon();
-//				BitmapDescriptor fromBitmap = BitmapDescriptorFactory.fromBitmap(icon);
-//				marker.setIcon(fromBitmap);
-//				
-//				Log.e("onClusterItemRendered", p.toString());
-//			}
-//			updateClusters();
-//		}
-		
 		@Override
 		protected boolean shouldRenderAsCluster(Cluster cluster) {
-			return false; // cluster.getSize() > 1;
+			return false;
 		}
-	}
-	
-	private void addItems() {
-		// TODO 동적으로 아래 에드아이템 해놓고
-		// mClusterManager.cluster();를 호출해주면 알아서 그려줌. 이게 notify()같음.
-		clusterManager.addItem(new Person(position(), "Walter", R.drawable.walter));
-		clusterManager.addItem(new Person(position(), "Gran", R.drawable.gran));
-		clusterManager.addItem(new Person(position(), "Ruth", R.drawable.ruth));
-		clusterManager.addItem(new Person(position(), "Stefan", R.drawable.stefan));
-		clusterManager.addItem(new Person(position(), "Mechanic", R.drawable.mechanic));
-		clusterManager.addItem(new Person(position(), "Yeats", R.drawable.yeats));
-		clusterManager.addItem(new Person(position(), "John", R.drawable.john));
-		clusterManager.addItem(new Person(position(), "Trevor the Turtle", R.drawable.turtle));
-		clusterManager.addItem(new Person(position(), "Teach", R.drawable.teacher));
-		clusterManager.addItem(new Person(position(), "Teach", R.drawable.daumlogo));
-	}
-	
-	private LatLng position() {
-		return new LatLng(random(-180, 180) / 4, random(-90, 90) / 4);
-	}
-	
-	private Random mRandom = new Random();
-	
-	private double random(double min, double max) {
-		return mRandom.nextDouble() * (max - min) + min;
 	}
 	
 	@Override
@@ -248,25 +209,56 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 	public void onConnectionFailed(ConnectionResult result) {
 	}
 	
+	private static Gson gson = new Gson();
+	
 	@Override
 	public void onCameraChange(CameraPosition position) {
+		// readArticleClient
+		// Make a web call for the locations
+		LatLng abc = map.getCameraPosition().target;
+		double lat = abc.latitude;
+		double lng = abc.longitude;
+		
+		Toast toastView = Toast.makeText(getActivity(), Double.toString(lat) + ", " + Double.toString(lng), Toast.LENGTH_LONG);
+		toastView.show();
+		fetch(lat, lng);
+	}
+	
+	HashSet<String> ids = new HashSet<String>();
+	
+	@Background
+	void fetch(double lat, double lng) {
+		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList((int) (lat * 1000000), (int) (lng * 1000000)), ArticleCommand[].class);
+		String id;
+		for (ArticleCommand a : data) {
+			try {
+				if (!ids.contains(id = a.getId())) {
+					ids.add(id);
+					FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(a.getId()), FacebookArticle.class);
+					makeItem(a.getPositionAsLatLng(), new URL(fbArticle.getImages()[fbArticle.getImages().length-1].getSource()));
+				}
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
 	}
 	
 	@Override
-	public void onClusterItemInfoWindowClick(Person item) {
+	public void onClusterItemInfoWindowClick(PhotoMarker item) {
 	}
 	
 	@Override
-	public boolean onClusterItemClick(Person item) {
+	public boolean onClusterItemClick(PhotoMarker item) {
 		return false;
 	}
 	
 	@Override
-	public void onClusterInfoWindowClick(Cluster<Person> cluster) {
+	public void onClusterInfoWindowClick(Cluster<PhotoMarker> cluster) {
 	}
 	
 	@Override
-	public boolean onClusterClick(Cluster<Person> cluster) {
+	public boolean onClusterClick(Cluster<PhotoMarker> cluster) {
 		return false;
 	}
+	
 }
