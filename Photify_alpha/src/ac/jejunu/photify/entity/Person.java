@@ -18,4 +18,11 @@ public class Person implements ClusterItem {
     public LatLng getPosition() {
         return mPosition;
     }
+
+	@Override
+	public String toString() {
+		return "Person [name=" + name + ", profilePhoto=" + profilePhoto + ", mPosition=" + mPosition + "]";
+	}
+    
+    
 }

@@ -1,8 +1,8 @@
 package ac.jejunu.photify;
 
 import ac.jejunu.photify.activity.PhotoInputActivity;
+import ac.jejunu.photify.fragment.AroundMapMarkerFragment2_;
 import ac.jejunu.photify.fragment.FacebookLoginFragment_;
-import ac.jejunu.photify.fragment.MapFragment;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
 import ac.jejunu.photify.fragment.TestFragment;
 import android.app.ActionBar;
@@ -16,10 +16,8 @@ import android.support.v4.app.FragmentManager;
 import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.view.ViewPager;
 import android.view.LayoutInflater;
-import android.view.Menu;
 import android.view.View;
 import android.view.View.OnClickListener;
-import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.Button;
 import android.widget.LinearLayout;
@@ -40,7 +38,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	 * The {@link ViewPager} that will host the section contents.
 	 */
 	ViewPager mViewPager;
-	private Button photoinput;
+	private Button btnPostPhoto;
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -88,47 +86,25 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		Window win = getWindow();
 		
 		LayoutInflater inflater = (LayoutInflater) getSystemService(Context.LAYOUT_INFLATER_SERVICE);
-		ViewGroup mainLayout = (ViewGroup) inflater.inflate(R.layout.activity_main, null);
 		LinearLayout linear = (LinearLayout) inflater.inflate(R.layout.mainbutton_overlay, null);
-		
-		ViewGroup menuLayout = (ViewGroup) inflater.inflate(R.layout.mainbutton_overlay, null);
 		
 		LinearLayout.LayoutParams paramlinear = new LinearLayout.LayoutParams(LinearLayout.LayoutParams.FILL_PARENT, LinearLayout.LayoutParams.FILL_PARENT);
 		win.addContentView(linear, paramlinear);
 	}
 	
 	private void initialize() {
-		photoinput = (Button) findViewById(R.id.button1);
-		
-		buttonEventDefine();
-	}
-	
-	private void buttonEventDefine() {
-		// TODO Auto-generated method stub
-		photoinput.setOnClickListener(new OnClickListener() {
-			
+		btnPostPhoto = (Button) findViewById(R.id.btn_post_photo);
+		btnPostPhoto.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-				
 				Intent intent = new Intent(MainActivity.this, PhotoInputActivity.class);
 				startActivity(intent);
-				
 			}
 		});
 	}
 	
 	@Override
-	public boolean onCreateOptionsMenu(Menu menu) {
-		// Inflate the menu; this adds items to the action bar if it is present.
-		getMenuInflater().inflate(R.menu.main, menu);
-		return true;
-	}
-	
-	@Override
 	public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
-		// When the given tab is selected, switch to the corresponding page in
-		// the ViewPager.
 		mViewPager.setCurrentItem(tab.getPosition());
 	}
 	
@@ -140,10 +116,6 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	public void onTabReselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
 	}
 	
-	/**
-	 * A {@link FragmentPagerAdapter} that returns a fragment corresponding to
-	 * one of the sections/tabs/pages.
-	 */
 	public class SectionsPagerAdapter extends FragmentPagerAdapter {
 		private FragmentPlaceHolder holder;
 		
@@ -172,7 +144,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		private Fragment[] fragments = new Fragment[] {//
 		new MasonryGridFragment_(), //
 				new FacebookLoginFragment_(), //
-				new MapFragment(), //
+				new AroundMapMarkerFragment2_(), //
 				new TestFragment(), //
 		};
 		private String[] titles = new String[] { "TEST1", "TEST2", "TEST3", "TEST4", "TEST5", };

@@ -11,11 +11,12 @@
     tools:context="ac.jejunu.photify.activity.MainActivity$PlaceholderFragment" >
 
     <Button
-        android:id="@+id/button1"
+        android:id="@+id/btn_post_photo"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_alignParentLeft="true"
         android:layout_alignParentTop="true"
-        android:text="Button" />
+        android:background="@drawable/edit"
+        android:minWidth="48dp" />
 
 </LinearLayout>
