@@ -1,5 +1,9 @@
 package ac.jejunu.photify.entity;
 
+import android.graphics.Point;
+
+import com.google.android.gms.maps.model.LatLng;
+
 public class ArticleCommand {
 	
 	private int no;
@@ -16,6 +20,10 @@ public class ArticleCommand {
 	private String attachPath;
 	
 	private int avgcolor = 0xffffff;
+	
+	public LatLng getPositionAsLatLng() {
+		return new LatLng(lat / 1000000d, lng / 1000000d);
+	}
 	
 	public int getLikecnt() {
 		return likecnt;

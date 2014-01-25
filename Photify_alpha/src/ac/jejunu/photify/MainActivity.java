@@ -1,7 +1,7 @@
 package ac.jejunu.photify;
 
 import ac.jejunu.photify.activity.PhotoInputActivity;
-import ac.jejunu.photify.fragment.AroundMapMarkerFragment2_;
+import ac.jejunu.photify.fragment.AroundMapMarkerFragment_;
 import ac.jejunu.photify.fragment.FacebookLoginFragment_;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
 import ac.jejunu.photify.fragment.TestFragment;
@@ -144,7 +144,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		private Fragment[] fragments = new Fragment[] {//
 		new MasonryGridFragment_(), //
 				new FacebookLoginFragment_(), //
-				new AroundMapMarkerFragment2_(), //
+				new AroundMapMarkerFragment_(), //
 				new TestFragment(), //
 		};
 		private String[] titles = new String[] { "TEST1", "TEST2", "TEST3", "TEST4", "TEST5", };

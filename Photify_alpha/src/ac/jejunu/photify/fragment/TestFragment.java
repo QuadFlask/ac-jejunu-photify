@@ -1,5 +1,9 @@
 package ac.jejunu.photify.fragment;
 
+import java.util.Random;
+
+import com.google.android.gms.maps.model.LatLng;
+
 import ac.jejunu.photify.R;
 import ac.jejunu.photify.entity.ArticleCommand;
 import ac.jejunu.photify.rest.WriteArticleClient;
@@ -48,8 +52,8 @@ public class TestFragment extends Fragment {
 				ArticleCommand cmd = new ArticleCommand();
 				cmd.setAttachPath(filePath);
 				cmd.setFbid("1076011818");
-				cmd.setLat(123);
-				cmd.setLng(456);
+				cmd.setLat(33456365); // jnu
+				cmd.setLng(126562708);
 				cmd.setContent("this is content");
 				
 				WriteArticleClient client = new WriteArticleClient();
@@ -58,6 +62,16 @@ public class TestFragment extends Fragment {
 				break;
 			}
 		}
+	}
+	
+	private LatLng position() {
+		return new LatLng(random(-180, 180) / 4, random(-90, 90) / 4);
+	}
+	
+	private Random mRandom = new Random();
+	
+	private double random(double min, double max) {
+		return mRandom.nextDouble() * (max - min) + min;
 	}
 	
 	private String getFilePath(Uri selectedImage) {

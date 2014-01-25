@@ -49,10 +49,7 @@ public class PhotoInputActivity extends FragmentActivity implements
 
 			@Override
 			public void onClick(View v) {
-				// TODO Auto-generated method stub
-
 				startGallery();
-
 			}
 
 		});

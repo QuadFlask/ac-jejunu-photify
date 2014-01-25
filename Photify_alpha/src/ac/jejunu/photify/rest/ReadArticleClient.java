@@ -11,4 +11,7 @@ public interface ReadArticleClient {
 	@Get("/getArticleList/{orderby}.photo?no={no}&limit={limit}")
 	public String readArticleList(String orderby, int no, int limit);
 	
+	@Get("/getArticleList/around.photo?lat={lat}&lng={lng}&limit=10")
+	public String readArticleList(int lat, int lng);
+	
 }
