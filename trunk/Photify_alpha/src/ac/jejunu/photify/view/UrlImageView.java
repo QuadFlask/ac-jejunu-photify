@@ -27,15 +27,18 @@ import android.widget.ImageView;
  * @author ep@gplushub.com / Eugen Plischke
  */
 public class UrlImageView extends ImageView {
+
 	
 	private static class UrlLoadingTask extends AsyncTask<URL, Void, Bitmap> {
 		private final ImageView updateView;
 		private boolean isCancelled = false;
 		
 		private InputStream urlInputStream;
+		private OnUrlImageLoadCompletedCallback callback;
 		
-		private UrlLoadingTask(ImageView updateView) {
+		private UrlLoadingTask(ImageView updateView, OnUrlImageLoadCompletedCallback callback) {
 			this.updateView = updateView;
+			this.callback = callback;
 		}
 		
 		@Override
@@ -67,6 +70,7 @@ public class UrlImageView extends ImageView {
 			if (!this.isCancelled) {
 				// hope that call is thread-safe
 				this.updateView.setImageBitmap(result);
+				if (callback != null) callback.onCompleted();
 			}
 		}
 		
@@ -148,10 +152,14 @@ public class UrlImageView extends ImageView {
 	 * @param url
 	 */
 	public void setImageURL(URL url) {
+		this.setImageURL(url, null);
+	}
+	
+	public void setImageURL(URL url, OnUrlImageLoadCompletedCallback callback) {
 		this.url = url;
 		synchronized (loadingMonitor) {
 			cancelLoading();
-			this.currentLoadingTask = new UrlLoadingTask(this).execute(url);
+			this.currentLoadingTask = new UrlLoadingTask(this, callback).execute(url);
 		}
 	}
 	
@@ -208,7 +216,7 @@ public class UrlImageView extends ImageView {
 	}
 	
 	// TODO 로드가 완료 되서 이미지를 표시할때 페이드 아웃 해줘야 함....
-	// 모서리가 라운드 되어야 함. 
+	// 모서리가 라운드 되어야 함.
 	// 모서리 선택할 수 있도록? 아니면 걍 모든 모서리를??
 	
 	@Override

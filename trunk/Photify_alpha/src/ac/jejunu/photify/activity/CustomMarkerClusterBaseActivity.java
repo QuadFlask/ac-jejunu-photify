@@ -37,9 +37,7 @@ public abstract class CustomMarkerClusterBaseActivity extends FragmentActivity i
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(getLayoutId());
-		setUpMapIfNeeded();
+
 	}
 
 	@Override

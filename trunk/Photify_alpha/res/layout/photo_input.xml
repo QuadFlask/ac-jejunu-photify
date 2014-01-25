@@ -13,6 +13,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical" >
 
+        <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
+
+        <LinearLayout
+            android:layout_width="0px"
+            android:layout_height="0px"
+            android:focusable="true"
+            android:focusableInTouchMode="true" />
+
         <ImageButton
             android:id="@+id/imageButton1"
             android:layout_width="match_parent"
@@ -23,14 +31,14 @@
             android:id="@+id/editText1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ems="10" />
-        
-    <fragment
-        android:id="@+id/map"
-        android:layout_width="match_parent"
-        android:layout_height="401dp"
-        class="com.google.android.gms.maps.SupportMapFragment" />
+            android:ems="10"
+            android:selectAllOnFocus="false" />
 
+        <fragment
+            android:id="@+id/map"
+            android:layout_width="match_parent"
+            android:layout_height="401dp"
+            class="com.google.android.gms.maps.SupportMapFragment" />
     </LinearLayout>
 
 </ScrollView>
