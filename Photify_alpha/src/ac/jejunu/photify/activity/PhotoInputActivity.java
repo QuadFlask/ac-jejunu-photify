@@ -24,67 +24,48 @@ import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
 import android.util.DisplayMetrics;
-import android.util.Log;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageButton;
-import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
-import com.google.android.gms.maps.GoogleMap.OnMapClickListener;
 import com.google.android.gms.maps.SupportMapFragment;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.EActivity;
+import com.googlecode.androidannotations.annotations.ViewById;
 
+@EActivity(R.layout.activity_photo_input)
 public class PhotoInputActivity extends FragmentActivity implements LocationListener {
-	private GoogleMap mmap;
-	private LocationManager locationManager;
-	private String provider;
-	public static final int SELECT_IMAGE = 1;
-	public static final int RESULT_POSITION_OK = 2;
-	private ImageButton imagbtn;
-	private Button btnSubmit, mapBtn;
+	private static final int SELECT_IMAGE = 1;
+	private static final int RESULT_POSITION_OK = 2;
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.photo_input);
-		
-		imagbtn = (ImageButton) findViewById(R.id.imageButton1);
-		imagbtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				startGallery();
-			}
-		});
-		
-		btnSubmit = (Button) findViewById(R.id.submit);
-		btnSubmit.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				submitArticle();
-			}
-		});
-		mapBtn = (Button) findViewById(R.id.mapBtn);
-		mapBtn.setOnClickListener(new OnClickListener() {
-			@Override
-			public void onClick(View v) {
-				Intent intent = new Intent(PhotoInputActivity.this, DetailedMapActivity.class);
-				startActivityForResult(intent, RESULT_POSITION_OK);
-			}
-		});
-		
-		article = new ArticleCommand();
+	@ViewById(R.id.imageButton1)
+	ImageButton imagbtn;
+	@ViewById(R.id.submit)
+	Button btnSubmit;
+	@ViewById(R.id.mapBtn)
+	Button mapBtn;
+	@ViewById(R.id.et_contents)
+	EditText etContents;
+	
+	private GoogleMap map;
+	private LocationManager locationManager;
+	private ArticleCommand article = new ArticleCommand();
+	
+	@AfterViews
+	void afterViews() {
+		setButtonClickListeners();
 		
 		GooglePlayServicesUtil.isGooglePlayServicesAvailable(PhotoInputActivity.this);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
-		Criteria criteria = new Criteria();
-		provider = locationManager.getBestProvider(criteria, true);
+		String provider = locationManager.getBestProvider(new Criteria(), true);
 		
 		if (provider == null) { // 위치정보 설정이 안되어 있으면 설정하는 엑티비티로 이동합니다
 			new AlertDialog.Builder(PhotoInputActivity.this).setTitle("위치서비스 동의").setNeutralButton("이동", new DialogInterface.OnClickListener() {
@@ -101,44 +82,42 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 		} else { // 위치 정보 설정이 되어 있으면 현재위치를 받아옵니다
 			locationManager.requestLocationUpdates(provider, 1, 1, PhotoInputActivity.this);
 			setUpMapIfNeeded();
+			goCurrentLocation();
 		}
-		mark();
 	}
 	
-	private void mark() {
-		mmap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-		
-		mmap.setOnMapClickListener(new OnMapClickListener() {
+	private void setButtonClickListeners() {
+		imagbtn.setOnClickListener(new OnClickListener() {
 			@Override
-			public void onMapClick(LatLng latLng) {
-				MarkerOptions markerOptions = new MarkerOptions();
-				// markerOptions.icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_launcher));
-				markerOptions.position(latLng);
-				
-				mmap.clear();
-				mmap.animateCamera(CameraUpdateFactory.newLatLng(latLng));
-				mmap.addMarker(markerOptions);
+			public void onClick(View v) {
+				startGallery();
 			}
 		});
-		mmap.setMapType(GoogleMap.MAP_TYPE_NORMAL);
+		
+		btnSubmit.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				submitArticle();
+			}
+		});
+		mapBtn.setOnClickListener(new OnClickListener() {
+			@Override
+			public void onClick(View v) {
+				Intent intent = new Intent(PhotoInputActivity.this, MarkerSelectorActivity_.class);
+				startActivityForResult(intent, RESULT_POSITION_OK);
+			}
+		});
 	}
-	
-	private ArticleCommand article;
 	
 	private void submitArticle() {
 		if (article == null) { return; }
-		// TODO
-		// show dialog! - starting~!
 		final ProgressDialog dialog = ProgressDialog.show(PhotoInputActivity.this, "", "Posting...", true);
 		
 		String fbid = getPrefs().getString("FBID", null);
 		String accessToken = getPrefs().getString("ACCESS_TOKEN", null);
 		
-		EditText content = (EditText) findViewById(R.id.editText1);
 		article.setFbid(fbid);
-		article.setContent(content.getText().toString());
-		
-		Log.e("submitArticle", article.toString());
+		article.setContent(etContents.getText().toString());
 		
 		WriteArticleClient client = new WriteArticleClient();
 		client.write(article, accessToken, new OnUploadCompletedCallback() {
@@ -165,35 +144,6 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 		});
 	}
 	
-	private SharedPreferences getPrefs() {
-		return getSharedPreferences("PHOTIFY", Activity.MODE_PRIVATE);
-	}
-	
-	private void setUpMapIfNeeded() {
-		if (mmap == null) {
-			mmap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
-			if (mmap != null) {
-				setUpMap();
-			}
-		}
-	}
-	
-	private void setUpMap() {
-		mmap.setMyLocationEnabled(true);
-		mmap.getMyLocation();
-	}
-	
-	private void startGallery() {
-		Intent i = new Intent(Intent.ACTION_GET_CONTENT);
-		i.setType("image/*");
-		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
-		try {
-			startActivityForResult(i, SELECT_IMAGE);
-		} catch (android.content.ActivityNotFoundException e) {
-			e.printStackTrace();
-		}
-	}
-	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
 		super.onActivityResult(requestCode, resultCode, intent);
@@ -203,35 +153,74 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 				case SELECT_IMAGE: {
 					Uri uri = intent.getData();
 					String path = getPath(uri);
-					String name = getName(uri);
-					Log.e("###", "실제경로 : " + path + "\n파일명 : " + name + "\nuri : " + uri.toString());
-					
 					Bitmap sampledSizeBitmap = getSampledSizeBitmap(path);
-					imagbtn.setImageBitmap(sampledSizeBitmap);
 					
+					imagbtn.setImageBitmap(sampledSizeBitmap);
 					article.setAttachPath(path);
 					break;
 				}
 				case RESULT_POSITION_OK: {
-					Log.e("PhotoInputActivity", "Result : " + intent.getDoubleExtra("lat", 0) + ", " + intent.getDoubleExtra("lng", 0));
 					article.setLatLng(intent.getDoubleExtra("lat", 0), intent.getDoubleExtra("lng", 0));
-					// TODO set position to marker
+					setMapCamera(article.getPositionAsLatLng());
 				}
 			}
 		}
 	}
 	
+	private void setUpMapIfNeeded() {
+		if (map == null) {
+			map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map)).getMap();
+			if (map != null) {
+				setUpMap();
+			}
+		}
+	}
+	
+	private void setUpMap() {
+		map.setMyLocationEnabled(true);
+		map.getMyLocation();
+	}
+	
+	private void startGallery() {
+		Intent i = new Intent(Intent.ACTION_GET_CONTENT);
+		i.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP);
+		i.setType("image/*");
+		try {
+			startActivityForResult(i, SELECT_IMAGE);
+		} catch (android.content.ActivityNotFoundException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private void setMapCamera(LatLng selectedPosition) {
+		MarkerOptions markerOptions = new MarkerOptions();
+		markerOptions.position(selectedPosition);
+		
+		map.clear();
+		map.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedPosition, 16.f));
+		map.addMarker(markerOptions);
+	}
+	
+	public synchronized void goCurrentLocation() {
+		Location lcCurrent = map.getMyLocation();
+		if (lcCurrent != null) map.getProjection().toScreenLocation(new LatLng(lcCurrent.getLatitude(), lcCurrent.getLongitude()));
+	}
+	
 	private Bitmap getSampledSizeBitmap(String path) {
 		BitmapFactory.Options opt = new BitmapFactory.Options();
+		Point size = getScreenSize();
 		
+		opt.inSampleSize = getOptimizedSampleSize(path, Math.max(size.x, size.y));
+		return resolveBitmap(path, opt);
+	}
+	
+	private Point getScreenSize() {
 		Point size = new Point();
 		WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
 		DisplayMetrics metrics = new DisplayMetrics();
 		windowManager.getDefaultDisplay().getMetrics(metrics);
 		size.set(metrics.widthPixels, metrics.heightPixels);
-		
-		opt.inSampleSize = getOptimizedSampleSize(path, Math.max(size.x, size.y));
-		return resolveBitmap(path, opt);
+		return size;
 	}
 	
 	private Bitmap resolveBitmap(String path, BitmapFactory.Options options) {
@@ -260,7 +249,6 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 		return (int) Math.pow(2, result - 1);
 	}
 	
-	// 실제 경로 찾기
 	private String getPath(Uri uri) {
 		String[] projection = { MediaStore.Images.Media.DATA };
 		Cursor cursor = managedQuery(uri, projection, null, null, null);
@@ -269,27 +257,8 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 		return cursor.getString(column_index);
 	}
 	
-	// 파일명 찾기
-	private String getName(Uri uri) {
-		String[] projection = { MediaStore.Images.ImageColumns.DISPLAY_NAME };
-		Cursor cursor = managedQuery(uri, projection, null, null, null);
-		int column_index = cursor.getColumnIndexOrThrow(MediaStore.Images.ImageColumns.DISPLAY_NAME);
-		cursor.moveToFirst();
-		return cursor.getString(column_index);
-	}
-	
-	boolean locationTag = true;
-	
-	@Override
-	public void onLocationChanged(Location location) {
-		if (locationTag) {// 한번만 위치를 가져오기 위해서 tag를 주었습니다
-			Log.d("myLog", "onLocationChanged: !!" + "onLocationChanged!!");
-			double lat = location.getLatitude();
-			double lng = location.getLongitude();
-			
-			Toast.makeText(PhotoInputActivity.this, "위도  : " + lat + " 경도: " + lng, Toast.LENGTH_SHORT).show();
-			locationTag = false;
-		}
+	private SharedPreferences getPrefs() {
+		return getSharedPreferences("PHOTIFY", Activity.MODE_PRIVATE);
 	}
 	
 	@Override
@@ -302,5 +271,9 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 	
 	@Override
 	public void onStatusChanged(String provider, int status, Bundle extras) {
+	}
+	
+	@Override
+	public void onLocationChanged(Location location) {
 	}
 }

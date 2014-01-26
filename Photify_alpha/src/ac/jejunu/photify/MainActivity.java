@@ -1,6 +1,6 @@
 package ac.jejunu.photify;
 
-import ac.jejunu.photify.activity.PhotoInputActivity;
+import ac.jejunu.photify.activity.PhotoInputActivity_;
 import ac.jejunu.photify.fragment.AroundMapMarkerFragment_;
 import ac.jejunu.photify.fragment.FacebookLoginFragment_;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
@@ -97,7 +97,7 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		btnPostPhoto.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
-				Intent intent = new Intent(MainActivity.this, PhotoInputActivity.class);
+				Intent intent = new Intent(MainActivity.this, PhotoInputActivity_.class);
 				startActivity(intent);
 			}
 		});

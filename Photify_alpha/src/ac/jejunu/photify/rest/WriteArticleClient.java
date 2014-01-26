@@ -83,7 +83,7 @@ public class WriteArticleClient {
 		@Override
 		protected void onPostExecute(String result) {
 			executeCallback(result);
-			Log.e(TAG, "$$$$$$$$$$$$$$$$$$  PostMessageTask - result : " + result);
+//			Log.e(TAG, "$$$$$$$$$$$$$$$$$$  PostMessageTask - result : " + result);
 		}
 		
 		@Override
