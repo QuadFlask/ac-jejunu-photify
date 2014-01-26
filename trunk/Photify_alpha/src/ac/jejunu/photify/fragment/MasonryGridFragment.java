@@ -111,6 +111,8 @@ public class MasonryGridFragment extends Fragment implements OnScrollBottomListe
 		masonryGridView.addView(item);
 	}
 	
+	// TODO 여기서 페이스북 데이터 가져오는 부분은 비동기로 처리해 줘야함.
+	// 페북에서 데이터 가져오는것 때문에 느림.
 	private View makeGridView(ArticleCommand c) throws MalformedURLException {
 		String id = c.getId();
 		FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(id), FacebookArticle.class);

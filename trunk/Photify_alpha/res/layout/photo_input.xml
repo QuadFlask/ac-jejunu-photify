@@ -11,6 +11,7 @@
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
+        android:gravity="center"
         android:orientation="vertical" >
 
         <!-- Dummy item to prevent AutoCompleteTextView from receiving focus -->
@@ -21,24 +22,65 @@
             android:focusable="true"
             android:focusableInTouchMode="true" />
 
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Photo"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
         <ImageButton
             android:id="@+id/imageButton1"
             android:layout_width="match_parent"
-            android:layout_height="250dp"
-            android:src="@drawable/com_facebook_button_check_on" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp"
+            android:adjustViewBounds="true"
+            android:background="#00000000"
+            android:scaleType="fitCenter"
+            android:src="@drawable/open_photo" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Descrption"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
 
         <EditText
             android:id="@+id/editText1"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:ems="10"
-            android:selectAllOnFocus="false" />
+            android:layout_marginBottom="20dp"
+            android:ems="10" />
 
-        <fragment
-            android:id="@+id/map"
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Location"
+            android:textAppearance="?android:attr/textAppearanceMedium" />
+
+        <FrameLayout
             android:layout_width="match_parent"
-            android:layout_height="401dp"
-            class="com.google.android.gms.maps.SupportMapFragment" />
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="20dp" >
+
+            <fragment
+                android:id="@+id/map"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                class="com.google.android.gms.maps.SupportMapFragment" />
+
+            <Button
+                android:id="@+id/mapBtn"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:background="#44000000"
+                android:text="Set location" />
+        </FrameLayout>
+
+        <Button
+            android:id="@+id/submit"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="글등록하기" />
     </LinearLayout>
 
 </ScrollView>
