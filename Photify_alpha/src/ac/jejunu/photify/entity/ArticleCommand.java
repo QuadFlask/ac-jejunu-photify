@@ -1,7 +1,5 @@
 package ac.jejunu.photify.entity;
 
-import android.graphics.Point;
-
 import com.google.android.gms.maps.model.LatLng;
 
 public class ArticleCommand {
@@ -20,6 +18,11 @@ public class ArticleCommand {
 	private String attachPath;
 	
 	private int avgcolor = 0xffffff;
+	
+	public void setLatLng(double lat, double lng) {
+		this.lat = (int) (lat * 1000000);
+		this.lng = (int) (lng * 1000000);
+	}
 	
 	public LatLng getPositionAsLatLng() {
 		return new LatLng(lat / 1000000d, lng / 1000000d);

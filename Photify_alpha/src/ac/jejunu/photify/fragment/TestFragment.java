@@ -41,7 +41,7 @@ public class TestFragment extends Fragment {
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent intent) {
-		// super.onActivityResult(requestCode, resultCode, data);
+		super.onActivityResult(requestCode, resultCode, intent);
 		if (intent == null || resultCode != Activity.RESULT_OK) return;
 		
 		switch (requestCode) {
@@ -57,21 +57,11 @@ public class TestFragment extends Fragment {
 				cmd.setContent("this is content");
 				
 				WriteArticleClient client = new WriteArticleClient();
-				client.write(cmd);
+				client.write(cmd, null, null);
 				
 				break;
 			}
 		}
-	}
-	
-	private LatLng position() {
-		return new LatLng(random(-180, 180) / 4, random(-90, 90) / 4);
-	}
-	
-	private Random mRandom = new Random();
-	
-	private double random(double min, double max) {
-		return mRandom.nextDouble() * (max - min) + min;
 	}
 	
 	private String getFilePath(Uri selectedImage) {
@@ -90,5 +80,15 @@ public class TestFragment extends Fragment {
 		Intent intent = new Intent(Intent.ACTION_GET_CONTENT);
 		intent.setType("image/*");
 		startActivityForResult(intent, REQUEST_CODE_FROM_GALLERY);
+	}
+	
+	private LatLng position() {
+		return new LatLng(random(-180, 180) / 4, random(-90, 90) / 4);
+	}
+	
+	private Random mRandom = new Random();
+	
+	private double random(double min, double max) {
+		return mRandom.nextDouble() * (max - min) + min;
 	}
 }

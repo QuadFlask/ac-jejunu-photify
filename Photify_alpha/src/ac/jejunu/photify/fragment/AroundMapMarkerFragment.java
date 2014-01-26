@@ -16,6 +16,7 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
+import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
@@ -55,8 +56,9 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 	private LocationClient locationClient;
 	private ClusterManager<PhotoMarker> clusterManager;
 	boolean isFirst = true;
+	private HashSet<String> ids = new HashSet<String>();
 	private static final LocationRequest REQUEST = LocationRequest.create().setInterval(5000) // 5
-			// seconds
+																								// seconds
 			.setFastestInterval(16) // 16ms = 60fps
 			.setPriority(LocationRequest.PRIORITY_HIGH_ACCURACY);
 	
@@ -82,6 +84,7 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 			locationClient = new LocationClient(getActivity(), this, this);
 		}
 		locationClient.connect();
+		ids.clear();
 		
 		if (!isMapExist()) map = ((SupportMapFragment) getFragmentManager().findFragmentById(R.id.map)).getMap();
 		if (isMapExist()) {
@@ -168,6 +171,7 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		super.onDestroyView();
 		
 		try {
+			map = null;
 			Fragment fragment = (getFragmentManager().findFragmentById(R.id.map));
 			FragmentTransaction ft = getFragmentManager().beginTransaction();
 			ft.remove(fragment);
@@ -201,14 +205,6 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		locationClient.requestLocationUpdates(REQUEST, this); // LocationListener
 	}
 	
-	@Override
-	public void onDisconnected() {
-	}
-	
-	@Override
-	public void onConnectionFailed(ConnectionResult result) {
-	}
-	
 	private static Gson gson = new Gson();
 	
 	@Override
@@ -221,26 +217,34 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		
 		Toast toastView = Toast.makeText(getActivity(), Double.toString(lat) + ", " + Double.toString(lng), Toast.LENGTH_LONG);
 		toastView.show();
+		
 		fetch(lat, lng);
 	}
-	
-	HashSet<String> ids = new HashSet<String>();
 	
 	@Background
 	void fetch(double lat, double lng) {
 		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList((int) (lat * 1000000), (int) (lng * 1000000)), ArticleCommand[].class);
 		String id;
 		for (ArticleCommand a : data) {
+			Log.e("fetch photo markers", a.toString());
 			try {
 				if (!ids.contains(id = a.getId())) {
 					ids.add(id);
 					FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(a.getId()), FacebookArticle.class);
-					makeItem(a.getPositionAsLatLng(), new URL(fbArticle.getImages()[fbArticle.getImages().length-1].getSource()));
+					makeItem(a.getPositionAsLatLng(), new URL(fbArticle.getImages()[fbArticle.getImages().length - 1].getSource()));
 				}
 			} catch (MalformedURLException e) {
 				e.printStackTrace();
 			}
 		}
+	}
+	
+	@Override
+	public void onDisconnected() {
+	}
+	
+	@Override
+	public void onConnectionFailed(ConnectionResult result) {
 	}
 	
 	@Override
@@ -253,12 +257,12 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 	}
 	
 	@Override
-	public void onClusterInfoWindowClick(Cluster<PhotoMarker> cluster) {
+	public boolean onClusterClick(Cluster<PhotoMarker> cluster) {
+		return false;
 	}
 	
 	@Override
-	public boolean onClusterClick(Cluster<PhotoMarker> cluster) {
-		return false;
+	public void onClusterInfoWindowClick(Cluster<PhotoMarker> cluster) {
 	}
 	
 }

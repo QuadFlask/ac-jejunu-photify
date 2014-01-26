@@ -13,12 +13,13 @@ import ac.jejunu.photify.R;
 import ac.jejunu.photify.rest.DefaultRestClient;
 import ac.jejunu.photify.rest.ReadFacebookArticleClient;
 import ac.jejunu.photify.rest.ServerIpAddress;
+import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences.Editor;
 import android.content.pm.PackageInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.Signature;
 import android.os.Bundle;
-import android.os.Environment;
 import android.support.v4.app.Fragment;
 import android.util.Base64;
 import android.util.Log;
@@ -36,6 +37,7 @@ import com.facebook.Response;
 import com.facebook.Session;
 import com.facebook.SessionState;
 import com.facebook.UiLifecycleHelper;
+import com.facebook.model.GraphUser;
 import com.facebook.widget.LoginButton;
 import com.facebook.widget.WebDialog;
 import com.google.gson.Gson;
@@ -61,7 +63,7 @@ public class FacebookLoginFragment extends Fragment {
 	@RestService
 	ReadFacebookArticleClient readArticleClient;
 	
-	Gson gson;
+	private Gson gson;
 	
 	private static final List<String> PERMISSIONS = Arrays.asList("publish_actions", "publish_stream", "read_stream");
 	
@@ -86,21 +88,20 @@ public class FacebookLoginFragment extends Fragment {
 				sendRequestDialog();
 			}
 		});
-
-		authButton.setFragment(this);
+		
+		authButton.setFragment(this);// 반두시 필요
 		shareButton.setOnClickListener(new View.OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				publishStory();
 			}
 		});
-
+		
 		printHashKey();
 	}
 	
 	@Background
 	void login() {
-		
 		DefaultRestClient rc = new DefaultRestClient();
 		try {
 			String result = rc.post(ServerIpAddress.IP + "/login.photo", "fbid", "123123");
@@ -134,7 +135,6 @@ public class FacebookLoginFragment extends Fragment {
 	@Override
 	public void onResume() {
 		super.onResume();
-		
 		// For scenarios where the fragment_facebook_login activity is launched
 		// and user
 		// session is not null, the session state change notification
@@ -143,15 +143,36 @@ public class FacebookLoginFragment extends Fragment {
 		if (session != null && (session.isOpened() || session.isClosed())) {
 			onSessionStateChange(session, session.getState(), null);
 			Log.e("users access token ", session.getAccessToken());
+			getPrefsEditor().putString("ACCESS_TOKEN", session.getAccessToken()).apply();
 		}
 		
 		uiHelper.onResume();
+	}
+
+	private Editor getPrefsEditor() {
+		return getActivity().getSharedPreferences("PHOTIFY", Activity.MODE_PRIVATE).edit();
 	}
 	
 	@Override
 	public void onActivityResult(int requestCode, int resultCode, Intent data) {
 		super.onActivityResult(requestCode, resultCode, data);
 		uiHelper.onActivityResult(requestCode, resultCode, data);
+		Session.getActiveSession().onActivityResult(getActivity(), requestCode, resultCode, data);
+		if (Session.getActiveSession().isOpened()) {
+			// Request user data and show the results
+			Request.executeMeRequestAsync(Session.getActiveSession(), new Request.GraphUserCallback() {
+				@Override
+				public void onCompleted(GraphUser user, Response response) {
+					if (user != null) {
+						Log.e(TAG, "Response : " + response);
+						Log.e(TAG, "UserID : " + user.getId());
+						Log.e(TAG, "User FirstName : " + user.getFirstName());
+//						int value = getPreferenceManager().getSharedPreferences().getInt("ACCESS_TOKEN", user.getId());
+						getPrefsEditor().putString("FBID", user.getId()).apply();
+					}
+				}
+			});
+		}
 	}
 	
 	@Override
@@ -206,10 +227,6 @@ public class FacebookLoginFragment extends Fragment {
 			postParams.putString("caption", "Build great social apps and get more installs.");
 			postParams.putString("description", "The Facebook SDK for Android makes it easier and faster to develop Facebook integrated Android apps.");
 			postParams.putString("link", "https://developers.facebook.com/android");
-			
-			String appStorage = Environment.getExternalStorageDirectory().getPath();
-			String path = appStorage + "/PolarClock_background/background.png";
-			// addImage(postParams, path);
 			
 			postParams.putString("picture", "https://fbcdn-sphotos-a-a.akamaihd.net/hphotos-ak-prn1/t1/995001_553244524762418_873787853_n.jpg");
 			
