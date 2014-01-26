@@ -16,11 +16,9 @@ import android.location.Location;
 import android.os.Bundle;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentTransaction;
-import android.util.Log;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.Toast;
 
 import com.google.android.gms.common.ConnectionResult;
 import com.google.android.gms.common.GooglePlayServicesClient.ConnectionCallbacks;
@@ -51,6 +49,8 @@ import com.googlecode.androidannotations.annotations.rest.RestService;
 public class AroundMapMarkerFragment extends Fragment implements ConnectionCallbacks, OnConnectionFailedListener, LocationListener, OnCameraChangeListener,
 		ClusterManager.OnClusterClickListener<PhotoMarker>, ClusterManager.OnClusterInfoWindowClickListener<PhotoMarker>, ClusterManager.OnClusterItemClickListener<PhotoMarker>,
 		ClusterManager.OnClusterItemInfoWindowClickListener<PhotoMarker> {
+	
+	private static Gson gson = new Gson();
 	
 	private GoogleMap map;
 	private LocationClient locationClient;
@@ -105,10 +105,6 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		}
 	}
 	
-	private boolean isMapExist() {
-		return map != null;
-	}
-	
 	@Background
 	void makeItem(LatLng position, URL url) {
 		final PhotoMarker photoMarker = new PhotoMarker("", position);
@@ -133,7 +129,6 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		private final IconGenerator mIconGenerator = new IconGenerator(getActivity());
 		private final IconGenerator mClusterIconGenerator = new IconGenerator(getActivity());
 		private final ImageView mImageView;
-		private final ImageView mClusterImageView;
 		private final int mDimension;
 		
 		public PhotoMarkerRenderer(GoogleMap mMap) {
@@ -141,9 +136,7 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 			
 			View multiProfile = getActivity().getLayoutInflater().inflate(R.layout.multi_profile, null);
 			mClusterIconGenerator.setContentView(multiProfile);
-			mClusterImageView = (ImageView) multiProfile.findViewById(R.id.image);
 			
-			// mImageView = new ImageView(getActivity());
 			mImageView = new ImageView(getActivity());
 			mDimension = (int) getResources().getDimension(R.dimen.custom_profile_image);
 			mImageView.setLayoutParams(new ViewGroup.LayoutParams(mDimension, mDimension));
@@ -167,9 +160,33 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 	}
 	
 	@Override
+	public void onCameraChange(CameraPosition position) {
+		LatLng currentCameraLocation = map.getCameraPosition().target;
+		double lat = currentCameraLocation.latitude;
+		double lng = currentCameraLocation.longitude;
+		fetch(lat, lng);
+	}
+	
+	@Background
+	void fetch(double lat, double lng) {
+		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList((int) (lat * 1000000), (int) (lng * 1000000)), ArticleCommand[].class);
+		String id;
+		for (ArticleCommand a : data) {
+			try {
+				if (!ids.contains(id = a.getId())) {
+					ids.add(id);
+					FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(a.getId()), FacebookArticle.class);
+					makeItem(a.getPositionAsLatLng(), new URL(fbArticle.getImages()[fbArticle.getImages().length - 1].getSource()));
+				}
+			} catch (MalformedURLException e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	@Override
 	public void onDestroyView() {
 		super.onDestroyView();
-		
 		try {
 			map = null;
 			Fragment fragment = (getFragmentManager().findFragmentById(R.id.map));
@@ -205,38 +222,8 @@ public class AroundMapMarkerFragment extends Fragment implements ConnectionCallb
 		locationClient.requestLocationUpdates(REQUEST, this); // LocationListener
 	}
 	
-	private static Gson gson = new Gson();
-	
-	@Override
-	public void onCameraChange(CameraPosition position) {
-		// readArticleClient
-		// Make a web call for the locations
-		LatLng abc = map.getCameraPosition().target;
-		double lat = abc.latitude;
-		double lng = abc.longitude;
-		
-		Toast toastView = Toast.makeText(getActivity(), Double.toString(lat) + ", " + Double.toString(lng), Toast.LENGTH_LONG);
-		toastView.show();
-		
-		fetch(lat, lng);
-	}
-	
-	@Background
-	void fetch(double lat, double lng) {
-		ArticleCommand[] data = gson.fromJson(readArticleClient.readArticleList((int) (lat * 1000000), (int) (lng * 1000000)), ArticleCommand[].class);
-		String id;
-		for (ArticleCommand a : data) {
-			Log.e("fetch photo markers", a.toString());
-			try {
-				if (!ids.contains(id = a.getId())) {
-					ids.add(id);
-					FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(a.getId()), FacebookArticle.class);
-					makeItem(a.getPositionAsLatLng(), new URL(fbArticle.getImages()[fbArticle.getImages().length - 1].getSource()));
-				}
-			} catch (MalformedURLException e) {
-				e.printStackTrace();
-			}
-		}
+	private boolean isMapExist() {
+		return map != null;
 	}
 	
 	@Override
