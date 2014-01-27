@@ -1,5 +1,7 @@
 package ac.jejunu.photify.rest;
 
+import java.net.URLEncoder;
+
 import org.springframework.core.io.FileSystemResource;
 import org.springframework.http.HttpEntity;
 import org.springframework.http.HttpHeaders;
@@ -41,13 +43,15 @@ public class WriteArticleClient {
 		
 		@Override
 		protected void onPreExecute() {
+			try {
 			formData = new LinkedMultiValueMap<String, Object>();
 			formData.add("fbid", command.getFbid());
-			formData.add("content", command.getContent());
+			formData.add("content",  URLEncoder.encode(command.getContent(),"UTF-8"));
 			formData.add("lat", "" + command.getLat());
 			formData.add("lng", "" + command.getLng());
 			formData.add("accesstoken", accessToken);
 			formData.add("attach", new FileSystemResource(command.getAttachPath()));
+			}catch(Exception e) {}
 		}
 		
 		@Override
