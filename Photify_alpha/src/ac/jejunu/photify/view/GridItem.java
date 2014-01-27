@@ -12,6 +12,7 @@ import android.widget.TextView;
 
 public class GridItem extends LinearLayout {
 	private View view;
+	private String postId;
 	private String photoUrl;
 	private String profilePhoto;
 	private String name;
@@ -19,10 +20,11 @@ public class GridItem extends LinearLayout {
 	private int defaultBackgroundColor = 0xffffffff;
 	private UrlImageView ivItemImage, ivProfilepic;
 	
-	public GridItem(Context context, String photoUrl, int width, int height, String profilePhoto, String name, String contents, int likes, int comments, int defaultBackgroundColor)
-			throws MalformedURLException {
+	public GridItem(Context context, String postId, String photoUrl, int width, int height, String profilePhoto, String name, String contents, int likes, int comments,
+			int defaultBackgroundColor) throws MalformedURLException {
 		super(context);
 		this.photoUrl = photoUrl;
+		this.postId = postId;
 		this.profilePhoto = profilePhoto;
 		this.name = name;
 		this.contents = contents;
@@ -54,5 +56,9 @@ public class GridItem extends LinearLayout {
 	public void setVisibility(int visibility) {
 		ivItemImage.setVisibility(visibility);
 		ivProfilepic.setVisibility(visibility);
+	}
+	
+	public String getPostId() {
+		return postId;
 	}
 }

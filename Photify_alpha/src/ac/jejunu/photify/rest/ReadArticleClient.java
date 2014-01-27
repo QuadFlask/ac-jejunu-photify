@@ -8,6 +8,9 @@ import com.googlecode.androidannotations.annotations.rest.Rest;
 @Rest(rootUrl = ServerIpAddress.IP, converters = { StringHttpMessageConverter.class })
 public interface ReadArticleClient {
 	
+	@Get("/getArticle.photo?postId={postId}")
+	public String readArticle(String postId);
+	
 	@Get("/getArticleList/{orderby}.photo?no={no}&limit={limit}")
 	public String readArticleList(String orderby, int no, int limit);
 	

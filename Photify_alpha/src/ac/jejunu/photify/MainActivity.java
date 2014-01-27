@@ -2,9 +2,7 @@ package ac.jejunu.photify;
 
 import ac.jejunu.photify.activity.PhotoInputActivity_;
 import ac.jejunu.photify.fragment.AroundMapMarkerFragment_;
-import ac.jejunu.photify.fragment.FacebookLoginFragment_;
 import ac.jejunu.photify.fragment.MasonryGridFragment_;
-import ac.jejunu.photify.fragment.TestFragment;
 import android.app.ActionBar;
 import android.app.FragmentTransaction;
 import android.content.Context;
@@ -40,6 +38,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	ViewPager mViewPager;
 	private Button btnPostPhoto;
 	
+	private int[] tabIcons = new int[] { R.drawable.around, R.drawable.masonry_list, R.drawable.my_list };
+	private int[] tabIcons_ = new int[] { R.drawable.around_, R.drawable.masonry_list_, R.drawable.my_list_ };
+	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
@@ -72,11 +73,8 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 		
 		// For each of the sections in the app, add a tab to the action bar.
 		for (int i = 0; i < mSectionsPagerAdapter.getCount(); i++) {
-			// Create a tab with text corresponding to the page title defined by
-			// the adapter. Also specify this Activity object, which implements
-			// the TabListener interface, as the callback (listener) for when
-			// this tab is selected.
-			actionBar.addTab(actionBar.newTab().setText(mSectionsPagerAdapter.getPageTitle(i)).setTabListener(this));
+			actionBar.addTab(actionBar.newTab().setIcon(tabIcons[i]).setTabListener(this));
+			// .setText(mSectionsPagerAdapter.getPageTitle(i))
 		}
 		inflatedLayout();
 		initialize();
@@ -106,10 +104,12 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	@Override
 	public void onTabSelected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
 		mViewPager.setCurrentItem(tab.getPosition());
+		tab.setIcon(tabIcons[tab.getPosition()]);
 	}
 	
 	@Override
 	public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction fragmentTransaction) {
+		tab.setIcon(tabIcons_[tab.getPosition()]);
 	}
 	
 	@Override
@@ -142,10 +142,9 @@ public class MainActivity extends FragmentActivity implements ActionBar.TabListe
 	
 	public static class FragmentPlaceHolder {
 		private Fragment[] fragments = new Fragment[] {//
-		new MasonryGridFragment_(), //
-				new FacebookLoginFragment_(), //
-				new AroundMapMarkerFragment_(), //
-				new TestFragment(), //
+		new AroundMapMarkerFragment_(), //
+				new MasonryGridFragment_(), //
+				new MasonryGridFragment_(), //
 		};
 		private String[] titles = new String[] { "TEST1", "TEST2", "TEST3", "TEST4", "TEST5", };
 		

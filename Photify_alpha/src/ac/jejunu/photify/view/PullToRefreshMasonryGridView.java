@@ -5,24 +5,31 @@ import java.util.List;
 
 import android.content.Context;
 import android.graphics.Rect;
+import android.os.AsyncTask;
+import android.util.Log;
 import android.view.View;
 import android.widget.FrameLayout;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 
-public class MasonryGridView extends ScrollView {
+import com.handmark.pulltorefresh.library.PullToRefreshBase;
+import com.handmark.pulltorefresh.library.PullToRefreshScrollView;
+
+public class PullToRefreshMasonryGridView extends PullToRefreshScrollView {
 	private LinearLayout columnContainer;
 	private List<StackLinearLayout> columns;
 	private List<View> children;
 	private List<OnScrollBottomListener> onScrollBottomListeners;
 	
-	public MasonryGridView(Context context, int column) {
+	public PullToRefreshMasonryGridView(Context context, int column) {
 		super(context);
 		columnContainer = new LinearLayout(context);
 		columns = new ArrayList<StackLinearLayout>();
 		children = new ArrayList<View>();
 		onScrollBottomListeners = new ArrayList<OnScrollBottomListener>();
-		super.addView(columnContainer);
+		getRefreshableView().addView(columnContainer);
+		
+		setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.FILL_PARENT, LayoutParams.FILL_PARENT));
 		
 		columnContainer.setOrientation(LinearLayout.HORIZONTAL);
 		columnContainer.setLayoutParams(new FrameLayout.LayoutParams(LayoutParams.MATCH_PARENT, LayoutParams.MATCH_PARENT));
@@ -32,20 +39,53 @@ public class MasonryGridView extends ScrollView {
 					LinearLayout.VERTICAL);
 			columns.add(stackLinearLayout);
 		}
+		
+		setOnRefreshListener(new OnRefreshListener<ScrollView>() {
+			@Override
+			public void onRefresh(PullToRefreshBase<ScrollView> refreshView) {
+				new GetDataTask(refreshView).execute();
+			}
+		});
+		
 		reloadColumn();
+	}
+	
+	private class GetDataTask extends AsyncTask<Void, Void, String[]> {
+		PullToRefreshBase mPullRefreshScrollView;
+		
+		public GetDataTask(PullToRefreshBase mPullRefreshScrollView) {
+			this.mPullRefreshScrollView = mPullRefreshScrollView;
+		}
+		
+		@Override
+		protected String[] doInBackground(Void... params) {
+			try {
+				Thread.sleep(4000);
+			} catch (InterruptedException e) {
+			}
+			return null;
+		}
+		
+		@Override
+		protected void onPostExecute(String[] result) {
+			mPullRefreshScrollView.onRefreshComplete();
+			super.onPostExecute(result);
+		}
 	}
 	
 	@Override
 	public void addView(View child) {
-		StackLinearLayout layout = getMinimumHeightColumn();
+		StackLinearLayout column = getMinimumHeightColumn();
 		children.add(child);
-		layout.addView(child);
+		column.addView(child);
+		onRefreshComplete();
 	}
 	
 	private void reloadColumn() {
 		columnContainer.removeAllViews();
 		for (StackLinearLayout col : columns)
 			columnContainer.addView(col.getLayout());
+		onRefreshComplete();
 	}
 	
 	private StackLinearLayout getMinimumHeightColumn() {
@@ -59,7 +99,9 @@ public class MasonryGridView extends ScrollView {
 	protected void onScrollChanged(int l, int t, int oldl, int oldt) {
 		super.onScrollChanged(l, t, oldl, oldt);
 		Rect scrollBounds = new Rect();
-		getHitRect(scrollBounds);
+		getRefreshableView().getHitRect(scrollBounds);
+		Log.e("PullToRefreshMasonryGridView", "onScrollChanged" + scrollBounds.toString());
+		
 		for (View view : children) {
 			if (!view.getLocalVisibleRect(scrollBounds)) view.setVisibility(View.INVISIBLE);
 			else view.setVisibility(View.VISIBLE);
@@ -67,8 +109,11 @@ public class MasonryGridView extends ScrollView {
 		fireOnScrollBottom();
 	}
 	
+	
+	
 	private void fireOnScrollBottom() {
-		int diff = (columns.get(0).getHeight() - (getHeight() + getScrollY()));
+		int diff = (columns.get(0).getHeight() - (getRefreshableView().getHeight() + getRefreshableView().getScrollY()));
+		Log.e("PullToRefreshMasonryGridView", "diff : " + diff);
 		for (OnScrollBottomListener listener : onScrollBottomListeners)
 			listener.onScrollBottom(diff);
 	}
