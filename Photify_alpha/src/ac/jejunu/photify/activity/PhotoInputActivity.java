@@ -23,7 +23,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.v4.app.FragmentActivity;
-import android.util.DisplayMetrics;
+import android.view.Display;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.view.WindowManager;
@@ -197,7 +197,7 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 		markerOptions.position(selectedPosition);
 		
 		map.clear();
-		map.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedPosition, 16.f));
+		map.animateCamera(CameraUpdateFactory.newLatLngZoom(selectedPosition, 10.f));
 		map.addMarker(markerOptions);
 	}
 	
@@ -216,10 +216,9 @@ public class PhotoInputActivity extends FragmentActivity implements LocationList
 	
 	private Point getScreenSize() {
 		Point size = new Point();
-		WindowManager windowManager = (WindowManager) getSystemService(Context.WINDOW_SERVICE);
-		DisplayMetrics metrics = new DisplayMetrics();
-		windowManager.getDefaultDisplay().getMetrics(metrics);
-		size.set(metrics.widthPixels, metrics.heightPixels);
+		Display d = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		size.x = d.getWidth();
+		size.y = d.getHeight();
 		return size;
 	}
 	

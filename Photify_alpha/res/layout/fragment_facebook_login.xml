@@ -1,38 +1,37 @@
-<LinearLayout
-	xmlns:android="http://schemas.android.com/apk/res/android"
-	xmlns:tools="http://schemas.android.com/tools"
-	android:layout_width="match_parent"
-	android:layout_height="match_parent"
-	android:orientation="vertical">
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:layout_gravity="center"
+    android:background="@drawable/app_background"
+    android:orientation="horizontal" >
 
-	<com.facebook.widget.LoginButton
-		android:id="@+id/authButton"
-		android:layout_width="wrap_content"
-		android:layout_height="wrap_content"
-		android:layout_gravity="center_horizontal"
-		android:layout_marginTop="30dp"
-		/>
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center"
+        android:layout_marginBottom="25dp"
+        android:orientation="vertical" >
 
-	<Button
-		android:id="@+id/shareButton"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textStyle="bold"
-		android:gravity="center"
-		android:layout_marginTop="30dp"
-		android:visibility="invisible"
-		android:text="share"
-		/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:src="@drawable/maps2" />
 
-	<Button
-		android:id="@+id/sendRequestButton"
-		android:layout_width="match_parent"
-		android:layout_height="wrap_content"
-		android:textStyle="bold"
-		android:gravity="center"
-		android:layout_marginTop="30dp"
-		android:visibility="invisible"
-		android:text="send_request"
-		/>
+        <ImageView
+            android:layout_width="wrap_content"
+            android:layout_height="75dp"
+            android:layout_marginBottom="30dp"
+            android:scaleType="fitCenter"
+            android:src="@drawable/title1" />
+
+        <com.facebook.widget.LoginButton
+            android:id="@+id/authButton"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginTop="30dp" />
+    </LinearLayout>
 
 </LinearLayout>

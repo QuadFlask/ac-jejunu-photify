@@ -1,33 +1,83 @@
 package ac.jejunu.photify.activity;
 
+import java.net.MalformedURLException;
+import java.net.URL;
+
 import ac.jejunu.photify.R;
+import ac.jejunu.photify.entity.ArticleCommand;
+import ac.jejunu.photify.entity.FacebookArticle;
+import ac.jejunu.photify.entity.FacebookArticle.Comment;
+import ac.jejunu.photify.entity.FacebookArticle.User;
+import ac.jejunu.photify.rest.ReadArticleClient;
+import ac.jejunu.photify.rest.ReadFacebookArticleClient;
+import ac.jejunu.photify.view.UrlImageView;
+import android.app.Activity;
 import android.app.AlertDialog;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.content.SharedPreferences;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Point;
 import android.location.Criteria;
 import android.location.Location;
 import android.location.LocationListener;
 import android.location.LocationManager;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
-import android.util.Log;
+import android.view.Display;
+import android.view.LayoutInflater;
+import android.view.WindowManager;
+import android.widget.Button;
+import android.widget.EditText;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import com.google.android.gms.common.GooglePlayServicesUtil;
+import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.SupportMapFragment;
+import com.google.gson.Gson;
+import com.googlecode.androidannotations.annotations.AfterViews;
+import com.googlecode.androidannotations.annotations.Background;
+import com.googlecode.androidannotations.annotations.EActivity;
+import com.googlecode.androidannotations.annotations.UiThread;
+import com.googlecode.androidannotations.annotations.ViewById;
+import com.googlecode.androidannotations.annotations.rest.RestService;
 
+@EActivity(R.layout.activity_detailed)
 public class DetailedActivity extends FragmentActivity implements LocationListener {
-	private GoogleMap mmap;
+	
+	@RestService
+	ReadArticleClient readArticleClient;
+	
+	@RestService
+	ReadFacebookArticleClient readFacebookArticleClient;
+	
+	@ViewById(R.id.iv_main_image)
+	UrlImageView mainImage;
+	@ViewById(R.id.writer_profile)
+	LinearLayout writerProfile;
+	@ViewById(R.id.user_profile_image)
+	UrlImageView userPofile;
+	
+	@ViewById(R.id.comments_container)
+	LinearLayout commentsContainer;
+	@ViewById(R.id.tv_user_name)
+	TextView tvUserName;
+	@ViewById(R.id.et_comment_contents)
+	EditText etCommentContents;
+	@ViewById(R.id.btn_submit)
+	Button btnSubmit;
+	
+	private GoogleMap map;
 	private LocationManager locationManager;
 	private String provider;
 	
-	@Override
-	protected void onCreate(Bundle savedInstanceState) {
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.activity_detailed);
-		
+	@AfterViews
+	void afterViews() {
 		GooglePlayServicesUtil.isGooglePlayServicesAvailable(DetailedActivity.this);
 		locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
 		Criteria criteria = new Criteria();
@@ -50,34 +100,137 @@ public class DetailedActivity extends FragmentActivity implements LocationListen
 			setUpMapIfNeeded();
 		}
 		
+		String postId = getIntent().getStringExtra("POST_ID");
+		if (postId == null || postId.length() <= 1) {
+			Toast.makeText(this, "error to get post from facebook [" + postId + "]", Toast.LENGTH_SHORT).show();
+		} else {
+			getArticleFromServer(postId);
+		}
+	}
+	
+	private static Gson gson = new Gson();
+	
+	@Background
+	public void getArticleFromServer(String postId) {
+		synchronized (this) {
+			try {
+				ArticleCommand c = gson.fromJson(readArticleClient.readArticle(postId), ArticleCommand.class);
+				FacebookArticle fbArticle = gson.fromJson(readFacebookArticleClient.getArticle(postId), FacebookArticle.class);
+				
+				updateView(c, fbArticle);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	@UiThread
+	void updateView(ArticleCommand c, FacebookArticle fbArticle) {
+		try {
+			mainImage.setDefaultBackgroundColor(0xff333333 | c.getAvgcolor());
+			mainImage.setImageURL(new URL(fbArticle.getImages()[1].getSource()));
+			
+			UrlImageView writer = (UrlImageView) writerProfile.findViewById(R.id.iv_profilepic);
+			writer.setImageURL(new URL(fbArticle.getFrom().getProfileImage()));
+			
+			TextView name = (TextView) writerProfile.findViewById(R.id.tv_name);
+			name.setText(fbArticle.getFrom().getName());
+			TextView contents = (TextView) writerProfile.findViewById(R.id.tv_contents);
+			contents.setText(fbArticle.getName());
+			
+			map.animateCamera(CameraUpdateFactory.newLatLngZoom(c.getPositionAsLatLng(), 10.f));
+			
+			if (fbArticle.getComments() == null) return;
+			Comment[] comments = fbArticle.getComments().getData();
+			for (Comment comment : comments) {
+				commentsContainer.addView(makeCommentView(comment));
+			}
+			
+			tvUserName.setText("");
+			String fbid = getPrefs().getString("FBID", null);
+			if (fbid != null) userPofile.setImageURL(new URL(FacebookArticle.resolveProfileImageURL(fbid)));
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private SharedPreferences getPrefs() {
+		return getSharedPreferences("PHOTIFY", Activity.MODE_PRIVATE);
+	}
+	
+	private LinearLayout makeCommentView(Comment comment) throws MalformedURLException {
+		LayoutInflater inflater = LayoutInflater.from(this);
+		LinearLayout commentLayout = (LinearLayout) inflater.inflate(R.layout.user_profile, null);
+		
+		UrlImageView profile = (UrlImageView) commentLayout.findViewById(R.id.iv_profilepic);
+		profile.setImageURL(new URL(comment.getFrom().getProfileImage()));
+		
+		TextView tvName = (TextView) commentLayout.findViewById(R.id.tv_name);
+		tvName.setText(comment.getFrom().getName());
+		TextView tvContents = (TextView) commentLayout.findViewById(R.id.tv_contents);
+		tvContents.setText(comment.getMessage());
+		
+		return commentLayout;
+	}
+	
+	private Bitmap getSampledSizeBitmap(String path) {
+		BitmapFactory.Options opt = new BitmapFactory.Options();
+		Point size = getScreenSize();
+		
+		opt.inSampleSize = getOptimizedSampleSize(path, Math.max(size.x, size.y));
+		return resolveBitmap(path, opt);
+	}
+	
+	private Point getScreenSize() {
+		Point size = new Point();
+		Display d = ((WindowManager) getSystemService(Context.WINDOW_SERVICE)).getDefaultDisplay();
+		size.x = d.getWidth();
+		size.y = d.getHeight();
+		return size;
+	}
+	
+	private Bitmap resolveBitmap(String path, BitmapFactory.Options options) {
+		return BitmapFactory.decodeFile(path, options);
+	}
+	
+	private int getOptimizedSampleSize(String fileName, int targetSize) {
+		BitmapFactory.Options options = new BitmapFactory.Options();
+		options.inJustDecodeBounds = true;
+		
+		BitmapFactory.decodeFile(fileName, options);
+		return calcRate(targetSize, options);
+	}
+	
+	private int calcRate(int targetSize, BitmapFactory.Options options) {
+		int bitmapMaxSize = Math.min(options.outWidth, options.outHeight);
+		int result = 1;
+		if (targetSize < bitmapMaxSize) result = getBinaryNumberLessThan((int) (((float) bitmapMaxSize) / targetSize));
+		return result;
+	}
+	
+	private int getBinaryNumberLessThan(int n) {
+		int result;
+		for (result = 1; result < 32; result++)
+			if (n >> result == 0) break;
+		return (int) Math.pow(2, result - 1);
 	}
 	
 	private void setUpMapIfNeeded() {
-		if (mmap == null) {
-			mmap = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map2)).getMap();
-			if (mmap != null) {
+		if (map == null) {
+			map = ((SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.map_detailed)).getMap();
+			if (map != null) {
 				setUpMap();
 			}
 		}
 	}
 	
 	private void setUpMap() {
-		mmap.setMyLocationEnabled(true);
-		mmap.getMyLocation();
+		map.setMyLocationEnabled(true);
+		map.getMyLocation();
 	}
-	
-	boolean locationTag = true;
 	
 	@Override
 	public void onLocationChanged(Location location) {
-		if (locationTag) {// 한번만 위치를 가져오기 위해서 tag를 주었습니다
-			Log.d("myLog", "onLocationChanged: !!" + "onLocationChanged!!");
-			double lat = location.getLatitude();
-			double lng = location.getLongitude();
-			
-			Toast.makeText(DetailedActivity.this, "위도  : " + lat + " 경도: " + lng, Toast.LENGTH_SHORT).show();
-			locationTag = false;
-		}
 	}
 	
 	@Override
